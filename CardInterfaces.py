@@ -6,34 +6,118 @@ class CommandLineInterface:
     def promptCard(self, player, cardsOnTable):
         cardNotChosen = True
         tempHand = player.hand.copy()
+        print(getPossiblePlays(player.hand, cardsOnTable))
         while cardNotChosen:
             print(f" The cards on Table {cardsOnTable}")
             userInput = input(f"Player({player.id}) Please choose a card: {np.sort(player.hand)}: ").split(',')
 
             cardsToPlay = []
             for card in userInput:
-                cardInt = (int)(card)
+                try:
+                    cardInt = (int)(card)
+                except:
+                    break
                 cardsToPlay.append(cardInt)
-            if cardsToPlay[0] == 0: cardsToPlay = []
+            
+            try:
+                if cardsToPlay[0] == 0: cardsToPlay = []
+            except:
+                continue
 
-            print(f"checkCardsInHand(cardToPlay,player.hand: {checkCardsInHand(cardsToPlay, player.hand)}")
-            print(f"isValidCard(cardsToPlay, player.hand: {isValidCard(cardsToPlay, cardsOnTable)}")
+            #print(f"checkCardsInHand(cardToPlay,player.hand: {checkCardsInHand(cardsToPlay, player.hand)}")
+            #print(f"isValidCard(cardsToPlay, player.hand: {isValidCard(cardsToPlay, cardsOnTable)}")
             if checkCardsInHand(cardsToPlay, player.hand) and  isValidCard(cardsToPlay, cardsOnTable):
                 # Remove the cards from the players hand and return
-                print(f"The players hand before removing the cards: {player.hand}")
                 removeCardsFromHand(cardsToPlay, player)
-                print(f"The players hand after removing the cards: {player.hand}")
-                print(f"The cards to play {cardsToPlay}")
                 cardNoChosen = False
                 return cardsToPlay
 
 
+def getBombs(hand):
+    # Returns an array of all the bomb types (i.e. 4,6 means there are bombs of 4s and 6sii)
+    bombsArray = []
+    for card in hand:
+        if hand.count(card) == 4:
+            bombsArray.append(card)
+    return bombsArray
+
+
+def getPossiblePlays(hand, cardsOnTable):
+    # Retruns an array of all the possible options.
+    possiblePlays = [] # Array of arrays
+    bombList = getBombs(hand)
+
+    if len(cardsOnTable) == 4:
+        # Add the bombs that are bigger than the bomb on the table.
+        for card in cardsOnTable:
+            for bomb in bombList:
+                if bomb >= card:
+                    possiblePlays.append([bomb, bomb, bomb, bomb])
+    else:
+        for bomb in bombList:
+            possiblePlays.add(getBombs(hand))
+
+    # Don't need to handle 14 because all bombs are already added.
+
+    if 3 in cardsOnTable:
+        if 14 in hand:
+            possiblePlays.append([14])
+
+    elif 2 in cardsOnTable:
+        if 14 in hand:
+            possiblePlays.append([14])
+        if 3 in hand:
+            possiblePlays.append([3])
+
+    elif len(cardsOnTable) > 0 and 14 not in cardsOnTable and 3 not in cardsOnTable and 2 not in cardsOnTable and len(cardsOnTable) < 4:   # If the top is not a powercard or bomb
+        if 14 in hand:
+            possiblePlays.append([14])
+        if 3 in hand:
+            possiblePlays.append([3])
+        if 2 in hand and len(cardsOnTable) < 3:
+            possiblePlays.append([2])
+        if 2 in hand and len(cardsOnTable) == 3 and hand.count(2) > 1:
+            possiblePlays.append([2,2])
+
+        for card in np.unique(np.array(hand)):
+            if card >= cardsOnTable[0] and hand.count(card) >= len(cardsOnTable) and card != 2 and card != 3 and card != 14:
+                tempArr = []
+                for _ in range(len(cardsOnTable)):
+                    tempArr.append(card)
+                possiblePlays.append(tempArr)
+                continue
+    
+    elif len(cardsOnTable) == 0:
+        # Add all the singles, doubles, tripples
+        for card in np.unique(np.array(hand)):
+            print(f"Appending {card}")
+            possiblePlays.append([card])
+            if hand.count(card) >= 2:
+                possiblePlays.append([card, card]) 
+            if hand.count(card) >= 3:
+                possiblePlays.append([card,card,card])
+    return possiblePlays
+
 
 class RandomCardInterface:
-    # Randomly selects a card to be played (Play must be legal)
-    # Used for inital Model Input data 
-    def promptCard(self, hand, cardOnTable):
-        print("Prompting random player for a card")
+    def promptCard(self, player, cardOnTable):
+        possiblePlays = getPossiblePlays(player.hand, cardOnTable)
+        play = []
+        print(f" The cards on Table {cardOnTable}")
+        print(f"Player({player.id}) Please choose a card: {np.sort(player.hand)}")
+        if len(possiblePlays) > 0:
+            randomPlay = np.random.randint(len(possiblePlays) + 1)
+            if randomPlay == len(possiblePlays):
+                play = []
+            else:
+                play = possiblePlays[randomPlay]
+                removeCardsFromHand(play, player)
+            # Pick 1 of the possible plays
+        
+        # Get all available options
+        # If the list of availble options is nothing,k
+        # Pick a random option 
+        return play
 
 
 class AIModelInterfaceInterface:
@@ -46,7 +130,7 @@ def isValidCard(cardsToPlay, cardsOnTable):
     # Check if the cardToPlay is valid against the cardsOnTable 
     # Cards to play should be an array 
     # Empty array is pass
-    print(f" Cards on table {cardsOnTable}")
+    #print(f" Cards on table {cardsOnTable}")
     if len(cardsToPlay) == 0 or len(cardsOnTable) == 0:
         return True
 
@@ -67,7 +151,7 @@ def isValidCard(cardsToPlay, cardsOnTable):
     
     if 3 in cardsToPlay:
         # Check if the 3 is trying to be played on a powercard or bomb
-        if 3 not in cardsOnTable and 14 not in cardsOnTable and len(cardsOnTable) < 4:
+        if (3 not in cardsOnTable) and (14 not in cardsOnTable) and (len(cardsOnTable) < 4):
             return True
 
     if 14 in cardsToPlay:
@@ -85,9 +169,9 @@ def isValidCard(cardsToPlay, cardsOnTable):
         
         # If a lower card was played check for 2, 3
         if cardsToPlay[0] < cardsOnTable[0]:
-            if cardsToPlay[0] == 2 and cardsOnTable[0] != 3:
+            if cardsToPlay[0] == 2 and cardsOnTable[0] != 3 and 14 not in cardsOnTable:
                 return True
-            elif cardsToPlay[0] == 3:
+            elif cardsToPlay[0] == 3 and 14 not in cardsOnTable:
                 return True
     
     if len(cardsToPlay) == 4:
@@ -118,21 +202,22 @@ def checkCardsInHand(cardsToPlay, cardsInHand):
         return True
         
     cardsInHandCopy = cardsInHand.copy()
-    for j, cardInHand in enumerate(cardsInHandCopy):
-        for i, card in enumerate(cardsToPlay):
+    for i, card in enumerate(cardsToPlay):
+        for j, cardInHand in enumerate(cardsInHandCopy):
             if card == cardInHand:
                 cardsInHandCopy.pop(j)
                 break
 
-    return len(cardsToPlay) == len(cardsInHand) - len(cardsInHandCopy)
+    #print(f"len(cardstoPlay): {len(cardsToPlay)} - len(cardsInHand): {len(cardsInHand)} - len(cardsInHandCopy): {len(cardsInHandCopy)}")
+    return len(cardsToPlay) == (len(cardsInHand) - len(cardsInHandCopy))
 
 def removeCardsFromHand(cardsToPlay, player):
     if len(cardsToPlay) == 0:
         return
 
-    for i, card in enumerate(player.hand):
-        for j, cardToPlay in enumerate(cardsToPlay):
+    for j, cardToPlay in enumerate(cardsToPlay):
+        for i, card in enumerate(player.hand):
             if card == cardToPlay:
                 player.hand.pop(i)
-                continue
+                break 
         
