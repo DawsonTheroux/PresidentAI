@@ -55,7 +55,7 @@ def getPossiblePlays(hand, cardsOnTable):
                     possiblePlays.append([bomb, bomb, bomb, bomb])
     else:
         for bomb in bombList:
-            possiblePlays.add(getBombs(hand))
+            possiblePlays.append([bomb,bomb,bomb,bomb])
 
     # Don't need to handle 14 because all bombs are already added.
 

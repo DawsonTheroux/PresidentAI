@@ -1,6 +1,7 @@
 import PlayerModule
 import numpy as np
 import pandas as pd
+import os
 
 
 # TODO: Fix aces (Maybe just rework the ordering of the cards in general)
@@ -20,6 +21,7 @@ class Game:
         self.assignPlayers()    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
         self.gameLoop()
+        self.loggingObject = {}
 
 
     def dealCards(self):
@@ -57,74 +59,6 @@ class Game:
             self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
         
 
-    def isValidCard(self, cardsToPlay):
-        # Check if the cardToPlay is valid against the cardsOnTable 
-        # Cards to play should be an array 
-        # Empty array is pass
-        if len(cardsToPlay) == 0:
-            return True
-
-        # Check if all the cardsToPlay are the same
-        cardType = cardsToPlay[0]
-        for card in cardsToPlay:
-            if cardType != card:
-                return False
-
-        # Check if the cards played was a powercard
-        if 2 in cardsToPlay:
-            # Check if the 2 is trying to be played on a powercard or bomb
-            if 2 not in self.cardsOnTable and 3 not in self.cardsOnTable and 14 not in self.cardsOnTable and len(self.cardsOnTable) < 4:
-                # Make sure the 2 was not played on tripples
-                if len(cardsToPlay) >= len(self.cardsOnTable) - 1:
-                    return True
-        
-        if 3 in cardsToPlay:
-            # Check if the 3 is trying to be played on a powercard or bomb
-            if 3 not in self.cardsOnTable and 14 not in self.cardsOnTable and len(self.cardsOnTable) < 4:
-                return True
-
-        if 14 in cardsToPlay:
-            # Check if the 2 is trying to be played on a powercard
-            if 14 not in self.cardsOnTable and len(self.cardsOnTable) < 4:
-                return True
-            
-        if len(cardsToPlay) == len(self.cardsOnTable):
-
-            # Check if the cards is of greater value
-            if cardsToPlay[0] > self.cardsOnTable[0]:
-                return True
-            if cardsToPlay[0] == self.cardsOnTable[0] and cardsToPlay[0] != 2 and cardsToPlay[0] != 3 and cardsToPlay[0] != 14:
-                return True
-            
-            # If a lower card was played check for 2, 3
-            if cardsToPlay[0] < self.cardsOnTable[0]:
-                if cardsToPlay[0] == 2 and self.cardsOnTable[0] != 3:
-                    return True
-                elif cardsToPlay[0] == 3:
-                    return True
-        
-        if len(cardsToPlay) == 4:
-            if len(self.cardsOnTable) == 4:
-                # Check if the cards is of greater value
-                if cardsToPlay[0] > self.cardsOnTable[0]:
-                    return True
-                if cardsToPlay[0] == self.cardsOnTable[0] and cardsToPlay[0] != 2 and cardsToPlay[0] != 3 and cardsToPlay[0] != 14:
-                    return True
-            
-                # If a lower card was played check for 2, 3
-                if cardsToPlay[0] < self.cardsOnTable[0]:
-                    if cardsToPlay[0] == 2 and self.cardsOnTable[0] != 3:
-                        return True
-                    elif cardsToPlay[0] == 3:
-                        return True 
-
-            else:
-                return True
-
-        # The card is not value at this point
-        return False 
-    
-
     def printResults(self):
         resultsArr = []
         for player in self.standings:
@@ -138,12 +72,26 @@ class Game:
         return resultsArr
 
     def createGameFile(self, fileString, results):
+        outputNumber = '1'
+        numberAvailable = False
+        fileList = os.listdir("GameLogs/")
+        print(fileList)
+        while not numberAvailable:
+            numberAvailable = True
+            for f in os.listdir("GameLogs/"):
+                print(f"Checking file: {f}")
+                if outputNumber in f:
+                    outputNumber = (str)((int)(outputNumber) + 1) # This is ugly
+                    numberAvailable = False
+                    break
+            
+        fileName = f"GameFile{outputNumber}.csv"
+            
         fileString += "\n\nResults:\n"
         positions = ["President", "Vice President", "Neutral1", "Neutral2", "Vice Ass", "Ass"]
         for i, player in enumerate(results):
             fileString += f"{positions[i]}; Player({player.id})\n"
 
-        fileName = "GameFile.csv"
 
         outputFile = open(f"GameLogs/{fileName}", "w")
         outputFile.write(fileString)
@@ -246,5 +194,6 @@ class Game:
         
 
 if __name__ == "__main__":
-    game_obj = Game()
+    for _ in range(100):
+        game_obj = Game()
 
