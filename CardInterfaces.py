@@ -90,7 +90,7 @@ def getPossiblePlays(hand, cardsOnTable):
     elif len(cardsOnTable) == 0:
         # Add all the singles, doubles, tripples
         for card in np.unique(np.array(hand)):
-            print(f"Appending {card}")
+            #print(f"Appending {card}")
             possiblePlays.append([card])
             if hand.count(card) >= 2:
                 possiblePlays.append([card, card]) 
@@ -103,10 +103,10 @@ class RandomCardInterface:
     def promptCard(self, player, cardOnTable):
         possiblePlays = getPossiblePlays(player.hand, cardOnTable)
         play = []
-        print(f" The cards on Table {cardOnTable}")
-        print(f"Player({player.id}) Please choose a card: {np.sort(player.hand)}")
+        #print(f" The cards on Table {cardOnTable}")
+        #print(f"Player({player.id}) Please choose a card: {np.sort(player.hand)}")
         if len(possiblePlays) > 0:
-            randomPlay = np.random.randint(len(possiblePlays) + 1)
+            randomPlay = np.random.randint(len(possiblePlays))
             if randomPlay == len(possiblePlays):
                 play = []
             else:

@@ -6,6 +6,7 @@ class Player:
         self.hand = []
         self.cardInterface = None
         self.id = id
+        self.playedHand = False
         if interfaceType == 0:
             self.cardInterface = CardInterfaces.CommandLineInterface()
         elif interfaceType == 1:
@@ -22,4 +23,8 @@ class Player:
         # Calls the interface to play a card.
         #TODO: Is there a polymorphic way to call this??
         # 0 will be pass. Returns an array.
-        return self.cardInterface.promptCard(self, cardOnTable)
+        cardsToPlay = self.cardInterface.promptCard(self, cardOnTable)
+        if len(cardsToPlay) > 0:
+            self.playedHand = True
+
+        return cardsToPlay
