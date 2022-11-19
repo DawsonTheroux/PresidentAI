@@ -1,4 +1,6 @@
 import numpy as np
+import torch
+#from GameClass import encodePlays
 
 
 class CommandLineInterface:
@@ -31,6 +33,30 @@ class CommandLineInterface:
                 removeCardsFromHand(cardsToPlay, player)
                 cardNoChosen = False
                 return cardsToPlay
+
+def encodePlays(plays, value):
+    # Singles(14) go from 0-14
+    # Doubles(14) go from 15-28
+    # Tripples(13) go from 28-40
+    # Bombs(13) go from 41-53
+    encodedArr = np.zeros(54)
+    doublesPadding = 14
+    tripplesPadding = 28
+    bombsPadding = 41
+
+    for play in plays:
+        if len(play) == 1:
+            encodedArr[play[0]-1] = value
+        elif len(play) == 2:
+            encodedArr[doublesPadding + (play[0]-1)] = value
+        elif len(play) == 3:
+            encodedArr[tripplesPadding + (play[0]-1)] = value
+        elif len(play) == 4:
+            encodedArr[bombsPadding + (play[0]-1)] = value
+        elif len(play) > 4:
+            raise Exception("A play was tried to be encoded that was larger than 4")
+    return encodedArr
+
 
 
 def getBombs(hand):
@@ -113,18 +139,80 @@ class RandomCardInterface:
                 play = possiblePlays[randomPlay]
                 removeCardsFromHand(play, player)
             # Pick 1 of the possible plays
-        
+
         # Get all available options
         # If the list of availble options is nothing,k
         # Pick a random option 
         return play
 
 
-class AIModelInterfaceInterface:
+class AIModelInterface:
     # Generates what card to play using the trained model
     # (If the max prob is low enough then pass turn??)
-    def promptCard(self, hand, cardOnTable):
+    def __init__(self, game, model):
+        self.model = model
+        self.game = game
+
+    def promptCard(self, player, cardsOnTable):
         print("Prompting AI player for a card")
+        device = "cuda"
+        possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
+        possiblePlaysEncoded = encodePlays(possiblePlays,1)
+        #print(f"size of possiblePlays {possiblePlaysEncoded.shape}")
+        cardsOnTableEncoded = encodePlays(cardsOnTable, 1)
+        #print(f"size of cardsOnTable {cardsOnTableEncoded.shape}")
+        #print(f"size of encoded played cards: {self.game.encodedPlayedCards}")
+        encodedPlayers = np.zeros(6)
+        for i,player in enumerate(self.game.players):
+            encodedPlayers[i] = 1
+            
+        self.model.eval()
+        
+        # Data structuure: possiblePlayesEncoded(54), cardsOnTable, All cards enccoded(54)
+        data = np.hstack((encodedPlayers, possiblePlaysEncoded, cardsOnTableEncoded, self.game.encodedPlayedCards))
+        with torch.no_grad():
+            #print(f"data.shape {data.shape}")
+            data = torch.from_numpy(data).float().cuda()
+            output = self.model(data)
+            topPreds = torch.topk(output, 3)
+            print(f"topPred {topPreds}")
+            #pred = output.argmax(dim=0, keepdim=True)
+
+            play = []
+            for predInd in topPreds.indices:
+                ####TOU ARE HERE$%%%%%
+                print(predInd)
+                candidate = decodePlay(predInd)
+                if possiblePlaysEncoded[predInd] != 0:
+                    play = candidate.numpy()
+                    removeCardsFromHand(play,player)
+                    break
+                
+            return play
+
+def decodePlay(codeIndex):
+    doublesPadding = 14
+    tripplesPadding = 28
+    bombsPadding = 41
+    if(codeIndex == 0):
+        return []
+    elif(codeIndex < 14):
+        card = codeIndex + 1
+        return [card]
+    elif(codeIndex - doublesPadding < 14):
+        card = codeIndex - doublesPadding + 1
+        return [card,card]
+    elif(codeIndex - tripplesPadding < 14):
+        card = codeIndex - tripplesPadding + 1
+        return [card,card, card]
+    elif(codeIndex - bombsPadding < 14):
+        card = codeIndex - bombsPadding + 1
+        return [card,card, card, card]
+    else:
+        print("INVALID PLAY")
+        return None
+
+
 
 def isValidCard(cardsToPlay, cardsOnTable):
     # Check if the cardToPlay is valid against the cardsOnTable 

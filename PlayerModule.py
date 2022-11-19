@@ -2,7 +2,7 @@ import numpy as np
 import CardInterfaces
 
 class Player:
-    def __init__(self, interfaceType, id):
+    def __init__(self, interfaceType, id, model = None, game = None):
         self.hand = []
         self.cardInterface = None
         self.id = id
@@ -12,7 +12,7 @@ class Player:
         elif interfaceType == 1:
             self.cardInterface = CardInterfaces.RandomCardInterface()
         elif interfaceType == 2:
-            self.cardInterface = CardInterfaces.AIModelInterface()
+            self.cardInterface = CardInterfaces.AIModelInterface(game, model)
         else:
             print("That is not a card interface")
 

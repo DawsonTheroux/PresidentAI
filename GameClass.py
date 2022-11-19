@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 from CardInterfaces import getPossiblePlays
+from CardInterfaces import encodePlays
 
 
 # TODO: Fix aces (Maybe just rework the ordering of the cards in general)
@@ -11,7 +12,7 @@ from CardInterfaces import getPossiblePlays
 
 class Game:
 
-    def __init__(self):
+    def __init__(self, gametype=0, model=None):
         self.players = []
         self.cards = []
         self.cardsPlayed = []
@@ -20,7 +21,8 @@ class Game:
         self.passedPlayers = []
         self.autoAss = []
         self.logArray = []
-        self.assignPlayers()    # This will set self.players array to Player Objects.
+        self.encodedPlayedCards = np.zeros(54)
+        self.assignPlayers(gametype, model)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
         self.gameLoop()
 
@@ -53,10 +55,13 @@ class Game:
         #for player in self.players:
             #print(f"player({player.id}): {player.hand}")
 
-    def assignPlayers(self):
+    def assignPlayers(self, gameType=0, model=None):
         for i in range(6):
+            if gameType != 0:
+                self.players.append(PlayerModule.Player(2,i, model, self))
             #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players
-            self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+            else:
+                self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
         
 
     def printResults(self):
@@ -83,6 +88,12 @@ class Game:
         logObject["cardsPlayed"] = cardsPlayed
         logObject["possiblePlays"] = possiblePlays
         logObject["playedHand"] = playedHand
+        encodedPlayers = np.zeros(6)
+        for i, player in enumerate(self.players):
+            encodedPlayers[i] = 1
+
+
+        logObject["encodedPlayersIn"] = encodedPlayers 
 
         self.logArray.append(logObject)
     
@@ -98,30 +109,13 @@ class Game:
                 valueSet = True
         return cardsPlayed
 
-    def encodePlays(self, plays, value):
-        # Singles(14) go from 0-14
-        # Doubles(14) go from 15-28
-        # Tripples(13) go from 29-41
-        # Bombs(13) go from 42-54
-        encodedArr = np.zeros(55)
-        doublesPadding = 15
-        tripplesPadding = 29
-        bombsPadding = 42
-
-        for play in plays:
-            if len(play) == 1:
-                encodedArr[play[0]-1] = value
-            elif len(play) == 2:
-                encodedArr[doublesPadding + (play[0]-1)] = value
-            elif len(play) == 3:
-                encodedArr[tripplesPadding + (play[0]-1)] = value
-            elif len(play) == 4:
-                encodedArr[bombsPadding + (play[0]-1)] = value
-            elif len(play) > 4:
-                raise Exception("A play was tried to be encoded that was larger than 4")
-        return encodedArr
     
-    def outputLogToFile(self, filename):
+    
+    def playCards(self, cardsPlayed):
+        for card in cardsPlayed:
+            self.encodedPlayedCards = self.encodeCardInPlayed(card, self.encodedPlayedCards)
+
+    def getTrainingData(self):
         outputArray = []
         finalStandings = []
         for player in self.standings:
@@ -138,15 +132,9 @@ class Game:
             if len(logObject["cardsPlayed"]) == 0:
                 playerPass = [1]
 
-
-            # Encode if the player played in this hand
-            playedHand = [0]
-            if logObject["playedHand"]:
-                playedHand = [1]
-
             # Encode possible Plays
-            possiblePlaysEncoded = self.encodePlays(logObject["possiblePlays"], 1)
-            cardsOntable = self.encodePlays([logObject["cardsOnTable"]], 1)
+            possiblePlaysEncoded = encodePlays(logObject["possiblePlays"], 1)
+            cardsOntable = encodePlays([logObject["cardsOnTable"]], 1)
 
 
             # Encode the all the cards in the cards played.
@@ -161,14 +149,20 @@ class Game:
                 if player.id == logObject["id"]:
                     playerScore = 5 - i
 
-            cardsPlayedEncoded = self.encodePlays([logObject["cardsPlayed"]], playerScore)
-            outputRow = np.hstack((playerPass, playedHand, possiblePlaysEncoded, allCardsEncoded, cardsPlayedEncoded))
+            cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore)
+            # label is playerPass + cardsPlayedEncoded
+            outputRow = np.hstack((logObject["encodedPlayersIn"], possiblePlaysEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
             if len(outputArray) == 0:
                 outputArray = outputRow
             else:
                 outputArray = np.vstack((outputArray, outputRow))
-        np.savetxt(filename, outputArray, delimiter = ',')
+        #print(f"outputArray.shape {outputArray.shape}")
+        return outputArray
 
+
+    def outputLogToFile(self, filename):
+        data = self.getTrainingData()
+        data.tofile(filename, sep=",")
 
     def gameLoop(self):
         # Prompt the players for cards
@@ -228,6 +222,8 @@ class Game:
                     self.standings.append(self.players[0])
                     gameOver = True 
                     break
+                
+            self.playCards(cardsToPlay)
 
             if len(self.players) == 1:
                 turnIndex = 0
@@ -242,7 +238,30 @@ class Game:
 
         #results = self.printResults() 
 
-        
+#def encodePlays(plays, value):
+#    # Singles(14) go from 0-14
+#    # Doubles(14) go from 15-28
+#    # Tripples(13) go from 28-40
+#    # Bombs(13) go from 41-53
+#    encodedArr = np.zeros(54)
+#    doublesPadding = 14
+#    tripplesPadding = 28
+#    bombsPadding = 41
+#
+#    for play in plays:
+#        if len(play) == 1:
+#            encodedArr[play[0]-1] = value
+#        elif len(play) == 2:
+#            encodedArr[doublesPadding + (play[0]-1)] = value
+#        elif len(play) == 3:
+#            encodedArr[tripplesPadding + (play[0]-1)] = value
+#        elif len(play) == 4:
+#            encodedArr[bombsPadding + (play[0]-1)] = value
+#        elif len(play) > 4:
+#            raise Exception("A play was tried to be encoded that was larger than 4")
+#    return encodedArr
+
+    
 
 if __name__ == "__main__":
     for i in range(1000):
@@ -251,4 +270,5 @@ if __name__ == "__main__":
         game_obj = Game()
         filename = f"GameLogs/gameFile{i}.csv"
         game_obj.outputLogToFile(filename)
+        dataTable = game_obj.getTrainingData()
 
