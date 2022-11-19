@@ -154,41 +154,54 @@ class AIModelInterface:
         self.game = game
 
     def promptCard(self, player, cardsOnTable):
-        print("Prompting AI player for a card")
-        device = "cuda"
+        #print(f"Prompting AI player({player.id}) for a card")
+        device = "cpu"
         possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
+        #print(f"Cards On Table: {cardsOnTable}")
+        #print(f"PossiblePlays: {possiblePlays}")
         possiblePlaysEncoded = encodePlays(possiblePlays,1)
+        if len(possiblePlays) == 0:
+            return []
         #print(f"size of possiblePlays {possiblePlaysEncoded.shape}")
-        cardsOnTableEncoded = encodePlays(cardsOnTable, 1)
+        cardsOnTableEncoded = encodePlays([cardsOnTable], 1)
         #print(f"size of cardsOnTable {cardsOnTableEncoded.shape}")
         #print(f"size of encoded played cards: {self.game.encodedPlayedCards}")
         encodedPlayers = np.zeros(6)
-        for i,player in enumerate(self.game.players):
+        for i in range(len(self.game.players)):
             encodedPlayers[i] = 1
             
         self.model.eval()
         
         # Data structuure: possiblePlayesEncoded(54), cardsOnTable, All cards enccoded(54)
+        topPredsArr = []
         data = np.hstack((encodedPlayers, possiblePlaysEncoded, cardsOnTableEncoded, self.game.encodedPlayedCards))
         with torch.no_grad():
             #print(f"data.shape {data.shape}")
-            data = torch.from_numpy(data).float().cuda()
+            if device == "cpu":
+                data = torch.from_numpy(data).float().cpu()
+            else:
+                data = torch.from_numpy(data).float().cuda()
             output = self.model(data)
-            topPreds = torch.topk(output, 3)
-            print(f"topPred {topPreds}")
-            #pred = output.argmax(dim=0, keepdim=True)
+            #topPreds = torch.topk(output, 3)
+            #if len(cardsOnTable) == 0:
+            if True:
+                topPredsArr = torch.topk(output, 55).indices.tolist()
+            #else:
+                #topPredsArr = torch.topk(output, 3).indices.tolist()
 
-            play = []
-            for predInd in topPreds.indices:
-                ####TOU ARE HERE$%%%%%
-                print(predInd)
-                candidate = decodePlay(predInd)
-                if possiblePlaysEncoded[predInd] != 0:
-                    play = candidate.numpy()
-                    removeCardsFromHand(play,player)
-                    break
-                
-            return play
+
+
+        play = []
+        for i, predInd in enumerate(topPredsArr):
+            candidate = decodePlay(predInd)
+            if candidate == [] and len(cardsOnTable) != 0: # and i == 0:
+                break
+            elif possiblePlaysEncoded[predInd-1] != 0:
+                play = candidate
+                removeCardsFromHand(play,player)
+                break
+        #print(f'Playing: {play}') 
+        return play
 
 def decodePlay(codeIndex):
     doublesPadding = 14
@@ -196,22 +209,21 @@ def decodePlay(codeIndex):
     bombsPadding = 41
     if(codeIndex == 0):
         return []
-    elif(codeIndex < 14):
-        card = codeIndex + 1
+    elif(codeIndex <= 14):
+        card = codeIndex 
         return [card]
-    elif(codeIndex - doublesPadding < 14):
-        card = codeIndex - doublesPadding + 1
+    elif(codeIndex - doublesPadding <= 14):
+        card = codeIndex - doublesPadding
         return [card,card]
-    elif(codeIndex - tripplesPadding < 14):
-        card = codeIndex - tripplesPadding + 1
+    elif(codeIndex - tripplesPadding <= 13):
+        card = codeIndex - tripplesPadding
         return [card,card, card]
-    elif(codeIndex - bombsPadding < 14):
-        card = codeIndex - bombsPadding + 1
+    elif(codeIndex - bombsPadding <= 13):
+        card = codeIndex - bombsPadding
         return [card,card, card, card]
     else:
         print("INVALID PLAY")
         return None
-
 
 
 def isValidCard(cardsToPlay, cardsOnTable):

@@ -147,7 +147,7 @@ class Game:
             playerScore = -1
             for i, player in enumerate(finalStandings):
                 if player.id == logObject["id"]:
-                    playerScore = 5 - i
+                    playerScore = 6 - i
 
             cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore)
             # label is playerPass + cardsPlayedEncoded
