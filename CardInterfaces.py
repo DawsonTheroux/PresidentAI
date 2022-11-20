@@ -58,7 +58,6 @@ def encodePlays(plays, value):
     return encodedArr
 
 
-
 def getBombs(hand):
     # Returns an array of all the bomb types (i.e. 4,6 means there are bombs of 4s and 6sii)
     bombsArray = []
@@ -194,7 +193,7 @@ class AIModelInterface:
         play = []
         for i, predInd in enumerate(topPredsArr):
             candidate = decodePlay(predInd)
-            if candidate == [] and len(cardsOnTable) != 0: # and i == 0:
+            if candidate == [] and len(cardsOnTable) != 0  and i == 0:
                 break
             elif possiblePlaysEncoded[predInd-1] != 0:
                 play = candidate

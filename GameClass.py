@@ -127,10 +127,6 @@ class Game:
         allCardsEncoded = np.zeros(54)
         for logObject in self.logArray:
 
-            # Encode is the player passed
-            playerPass = [0]
-            if len(logObject["cardsPlayed"]) == 0:
-                playerPass = [1]
 
             # Encode possible Plays
             possiblePlaysEncoded = encodePlays(logObject["possiblePlays"], 1)
@@ -148,6 +144,12 @@ class Game:
             for i, player in enumerate(finalStandings):
                 if player.id == logObject["id"]:
                     playerScore = 6 - i
+                    break
+
+            # Encode is the player passed
+            playerPass = [0]
+            if len(logObject["cardsPlayed"]) == 0:
+                playerPass = [playerScore]
 
             cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore)
             # label is playerPass + cardsPlayedEncoded
