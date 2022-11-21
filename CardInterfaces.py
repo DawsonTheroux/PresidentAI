@@ -194,7 +194,7 @@ class AIModelInterface:
         play = []
         for i, predInd in enumerate(topPredsArr):
             candidate = decodePlay(predInd)
-            if candidate == [] and len(cardsOnTable) != 0: # and i == 0:
+            if candidate == [] and len(cardsOnTable) != 0 and i == 0:
                 break
             elif possiblePlaysEncoded[predInd-1] != 0:
                 play = candidate

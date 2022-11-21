@@ -56,12 +56,15 @@ class Game:
             #print(f"player({player.id}): {player.hand}")
 
     def assignPlayers(self, gameType=0, model=None):
-        for i in range(6):
-            if gameType != 0:
+
+        if gameType != 0:
+            for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model, self))
-            #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players
-            else:
-                self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+            #for i in range(2):
+                #self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+        else:
+            for i in range(6): #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players else:
+                    self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
         
 
     def printResults(self):
