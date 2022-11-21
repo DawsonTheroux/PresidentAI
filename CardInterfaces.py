@@ -58,7 +58,6 @@ def encodePlays(plays, value):
     return encodedArr
 
 
-
 def getBombs(hand):
     # Returns an array of all the bomb types (i.e. 4,6 means there are bombs of 4s and 6sii)
     bombsArray = []
