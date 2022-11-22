@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import copy
 #from GameClass import encodePlays
 
 
@@ -40,21 +41,45 @@ def encodePlays(plays, value):
     # Tripples(13) go from 28-40
     # Bombs(13) go from 41-53
     encodedArr = np.zeros(54)
-    doublesPadding = 14
-    tripplesPadding = 28
-    bombsPadding = 41
+    #doublesPadding = 14
+    #tripplesPadding = 28
+    #bombsPadding = 41
 
+    #for play in plays:
+    #    if len(play) == 1:
+    #        encodedArr[play[0]-1] = value
+    #    elif len(play) == 2:
+    #        encodedArr[doublesPadding + (play[0]-1)] = value
+    #    elif len(play) == 3:
+    #        encodedArr[tripplesPadding + (play[0]-1)] = value
+    #    elif len(play) == 4:
+    #        encodedArr[bombsPadding + (play[0]-1)] = value
+    #    elif len(play) > 4:
+    #        raise Exception(f"A play was tried to be encoded that was larger than 4: {play}")
+    #return encodedArr
+
+    #----Encode Plays by smallest to largest values---.
     for play in plays:
-        if len(play) == 1:
-            encodedArr[play[0]-1] = value
+        if len(play) == 0:
+            return encodedArr
+        playNumber = play[0]
+        if play[0] == 2:
+            playNumber = 12
+        elif play[0] == 3:
+            playNumber = 13
+        elif play[0] > 3 and play[0] != 14:
+            playNumber = play[0] - 2
+
+        if len(play) == 1:            
+            encodedArr[((play[0]-1) * 4)] = value
         elif len(play) == 2:
-            encodedArr[doublesPadding + (play[0]-1)] = value
+            encodedArr[((play[0]-1) * 4) + 1] = value
         elif len(play) == 3:
-            encodedArr[tripplesPadding + (play[0]-1)] = value
+            encodedArr[((play[0]-1) * 4) + 2] = value
         elif len(play) == 4:
-            encodedArr[bombsPadding + (play[0]-1)] = value
-        elif len(play) > 4:
-            raise Exception("A play was tried to be encoded that was larger than 4")
+            encodedArr[((play[0]-1) * 4) + 3] = value
+        else:
+            raise Exception(f"Tried to encode a play larger than 4")
     return encodedArr
 
 
@@ -152,6 +177,20 @@ class AIModelInterface:
         self.model = model
         self.game = game
 
+    def encodeCardsInHand(self, hand):
+        encodedHand = np.zeros(54)
+        for i, card in enumerate(hand):
+            valueSet = False
+            valueIndex = (card-1) * 4
+            while(not valueSet):
+                if encodedHand[valueIndex] == 1:
+                    valueIndex += 1
+                else:
+                    encodedHand[valueIndex] = 1
+                    valueSet = True
+        return encodedHand 
+
+
     def promptCard(self, player, cardsOnTable):
         #print(f"Prompting AI player({player.id}) for a card")
         device = "cpu"
@@ -163,6 +202,7 @@ class AIModelInterface:
             return []
         #print(f"size of possiblePlays {possiblePlaysEncoded.shape}")
         cardsOnTableEncoded = encodePlays([cardsOnTable], 1)
+        encodedHand = self.encodeCardsInHand(player.hand)
         #print(f"size of cardsOnTable {cardsOnTableEncoded.shape}")
         #print(f"size of encoded played cards: {self.game.encodedPlayedCards}")
         encodedPlayers = np.zeros(6)
@@ -173,7 +213,8 @@ class AIModelInterface:
         
         # Data structuure: possiblePlayesEncoded(54), cardsOnTable, All cards enccoded(54)
         topPredsArr = []
-        data = np.hstack((encodedPlayers, possiblePlaysEncoded, cardsOnTableEncoded, self.game.encodedPlayedCards))
+        data = np.hstack((encodedPlayers, possiblePlaysEncoded, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
+        #data = np.hstack((encodedPlayers, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
         with torch.no_grad():
             #print(f"data.shape {data.shape}")
             if device == "cpu":
@@ -193,7 +234,7 @@ class AIModelInterface:
         play = []
         for i, predInd in enumerate(topPredsArr):
             candidate = decodePlay(predInd)
-            if candidate == [] and len(cardsOnTable) != 0  and i == 0:
+            if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
                 break
             elif possiblePlaysEncoded[predInd-1] != 0:
                 play = candidate
@@ -203,26 +244,62 @@ class AIModelInterface:
         return play
 
 def decodePlay(codeIndex):
-    doublesPadding = 14
-    tripplesPadding = 28
-    bombsPadding = 41
+    #doublesPadding = 14
+    #tripplesPadding = 28
+    #bombsPadding = 41
+
+    #if(codeIndex == 0):
+    #    return []
+    #elif(codeIndex <= 14):
+    #    card = codeIndex 
+    #    return [card]
+    #elif(codeIndex - doublesPadding <= 14):
+    #    card = codeIndex - doublesPadding
+    #    return [card,card]
+    #elif(codeIndex - tripplesPadding <= 13):
+    #    card = codeIndex - tripplesPadding
+    #    return [card,card, card]
+    #elif(codeIndex - bombsPadding <= 13):
+    #    card = codeIndex - bombsPadding
+    #    return [card,card, card, card]
+    #else:
+    #    print("INVALID PLAY")
+    #    return None
+
     if(codeIndex == 0):
         return []
-    elif(codeIndex <= 14):
-        card = codeIndex 
-        return [card]
-    elif(codeIndex - doublesPadding <= 14):
-        card = codeIndex - doublesPadding
-        return [card,card]
-    elif(codeIndex - tripplesPadding <= 13):
-        card = codeIndex - tripplesPadding
-        return [card,card, card]
-    elif(codeIndex - bombsPadding <= 13):
-        card = codeIndex - bombsPadding
-        return [card,card, card, card]
-    else:
-        print("INVALID PLAY")
-        return None
+    codeIndex = codeIndex - 1
+    for i in range(14):
+        candidateIndex = i * 4
+        if codeIndex >= candidateIndex and codeIndex <= candidateIndex + 3:
+            break
+    
+    numberOfCards = (codeIndex - candidateIndex) + 1
+    card = (candidateIndex / 4) + 1
+    if card == 12:
+        card = 2
+    elif card == 13:
+        card = 3
+    elif card > 1 and card != 14:
+        card = card + 2
+
+    play = []
+    card = int(card)
+    for i in range(numberOfCards):
+        play.append(card)
+
+    return play
+    
+#for i in range(14):
+#    play = []
+#    for j in range(4):
+#        play.append(i + 1)
+#        encoded = encodePlays([copy.deepcopy(play)], 1)
+#        print(f"Encoded {play}")
+#        print(f"Decoded - {decodePlay(np.argmax(encoded) + 1)}")
+#        print('-----')
+#exit(0)
+        
 
 
 def isValidCard(cardsToPlay, cardsOnTable):

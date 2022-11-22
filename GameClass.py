@@ -2,6 +2,7 @@ import PlayerModule
 import numpy as np
 import pandas as pd
 import os
+import copy
 from CardInterfaces import getPossiblePlays
 from CardInterfaces import encodePlays
 
@@ -81,18 +82,23 @@ class Game:
             player.playedHand = False
 
 
-    def logPlay(self, cardsPlayed, possiblePlays, playerID, playedHand):
+    def logPlay(self, cardsPlayed, possiblePlays, playerID, playInHand, handBeforePlay):
         logObject = {}
         logObject["id"] = playerID
-        logObject["cardsOnTable"] = self.cardsOnTable
-        logObject["cardsPlayed"] = cardsPlayed
-        logObject["possiblePlays"] = possiblePlays
-        logObject["playedHand"] = playedHand
+        logObject["cardsOnTable"] = self.cardsOnTable   # The play on the table
+        logObject["cardsPlayed"] = cardsPlayed          # The cards Played by the player
+        logObject["possiblePlays"] = possiblePlays      # The possible Plays of the plyaer.
+        logObject["playedHand"] = playInHand            # Did the player play in the hand?
+        logObject["cardsInHand"] = handBeforePlay       # The player hand before the play.
+        #print(f"player({playerID})")
+        #print(f"cardsOntable({self.cardsOnTable})")
+        #print(f"cardsPlayed({cardsPlayed})")
+        #print(f"possiblePlays({possiblePlays})")
+        #print(f"Hand Before Play({handBeforePlay})")
+
         encodedPlayers = np.zeros(6)
         for i, player in enumerate(self.players):
             encodedPlayers[i] = 1
-
-
         logObject["encodedPlayersIn"] = encodedPlayers 
 
         self.logArray.append(logObject)
@@ -125,19 +131,15 @@ class Game:
         
         allCardsPlayed = []
         allCardsEncoded = np.zeros(54)
-        for logObject in self.logArray:
-
-
+        for i, logObject in enumerate(self.logArray):
             # Encode possible Plays
             possiblePlaysEncoded = encodePlays(logObject["possiblePlays"], 1)
             cardsOntable = encodePlays([logObject["cardsOnTable"]], 1)
 
-
-            # Encode the all the cards in the cards played.
-            for card in logObject["cardsPlayed"]:
-                allCardsEncoded = self.encodeCardInPlayed(card, allCardsEncoded)
-                allCardsPlayed.append(card)
-            allCardsPlayed.sort()
+            handEncoded = np.zeros(54)
+            for card in logObject["cardsInHand"]:
+                handEncoded = self.encodeCardInPlayed(card, handEncoded)
+            
 
             # Encode the play that the player played
             playerScore = -1
@@ -153,12 +155,19 @@ class Game:
 
             cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore)
             # label is playerPass + cardsPlayedEncoded
-            outputRow = np.hstack((logObject["encodedPlayersIn"], possiblePlaysEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
+            #outputRow = np.hstack((logObject["encodedPlayersIn"], possiblePlaysEncoded, handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
+            outputRow = np.hstack((logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
             if len(outputArray) == 0:
                 outputArray = outputRow
             else:
                 outputArray = np.vstack((outputArray, outputRow))
-        #print(f"outputArray.shape {outputArray.shape}")
+
+            # Encode the all the cards in the cards played.
+            for card in logObject["cardsPlayed"]:
+                allCardsEncoded = self.encodeCardInPlayed(card, allCardsEncoded)
+                allCardsPlayed.append(card)
+            allCardsPlayed.sort()
+
         return outputArray
 
 
@@ -180,10 +189,10 @@ class Game:
             
             cardOnTablePrior = self.cardsOnTable
             # prompt the player at player index for a card.
-
+            handBeforePlay = copy.deepcopy(self.players[turnIndex].hand)
             possiblePlays = getPossiblePlays(self.players[turnIndex].hand, self.cardsOnTable)
             cardsToPlay = self.players[turnIndex].promptCard(self.cardsOnTable)
-            self.logPlay(cardsToPlay, possiblePlays, self.players[turnIndex].id, self.players[turnIndex].playedHand)
+            self.logPlay(cardsToPlay, possiblePlays, self.players[turnIndex].id, self.players[turnIndex].playedHand, handBeforePlay)
 
             # Add all the cards to the played cards list.
             for card in cardsToPlay: 
@@ -263,9 +272,9 @@ class Game:
 #            raise Exception("A play was tried to be encoded that was larger than 4")
 #    return encodedArr
 
-    
 
 if __name__ == "__main__":
+    '''
     for i in range(1000):
         if i % 100 == 0:
             print(f"Game: {i}")
@@ -273,4 +282,8 @@ if __name__ == "__main__":
         filename = f"GameLogs/gameFile{i}.csv"
         game_obj.outputLogToFile(filename)
         dataTable = game_obj.getTrainingData()
+    '''
+    game_obj = Game()
+    filename = f"testfile.csv"
+    game_obj.outputLogToFile(filename)
 
