@@ -7,9 +7,10 @@ from CardInterfaces import getPossiblePlays
 from CardInterfaces import encodePlays
 
 
-# TODO: Fix aces (Maybe just rework the ordering of the cards in general)
-#   - This is kinda unecessary
-# TODO: Create Log
+# Disabled Auto Ass
+# Things to try: Randomize game playing to learn new strategies during game(1,model)
+# Implement a reinforcement learning with goal based reward.
+# Discard the last play since it is almost guarenteed.
 
 class Game:
 
@@ -58,11 +59,14 @@ class Game:
 
     def assignPlayers(self, gameType=0, model=None):
 
-        if gameType != 0:
+        if gameType == 1:
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model, self))
             #for i in range(2):
                 #self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+        elif gameType == 2:
+            for i in range(6):
+                self.players.append(PlayerModule.Player(2,i, model, self))
         else:
             for i in range(6): #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players else:
                     self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
@@ -117,8 +121,7 @@ class Game:
                 cardsPlayed[valueIndex] = 1
                 valueSet = True
         return cardsPlayed
-
-    
+ 
     
     def playCards(self, cardsPlayed):
         for card in cardsPlayed:
@@ -131,11 +134,29 @@ class Game:
             finalStandings.append(player)
         for player in self.autoAss:
             finalStandings.append(player)
+
+        scoreInfo = {}
+        for i, player in enumerate(finalStandings):
+            scoreInfo[player.id] = {}
+            if i <= 2:
+                scoreInfo[player.id]["score"] = 3 - i
+            else:
+                scoreInfo[player.id]["score"] = 2 - i
+            scoreInfo[player.id]["numPlays"] = 0
         
+        for logObject in self.logArray:
+            scoreInfo[logObject["id"]]["numPlays"] += 1
+
         allCardsPlayed = []
         allCardsEncoded = np.zeros(54)
-        for i, logObject in enumerate(self.logArray):
-            # Encode possible Plays
+        for logObject in self.logArray:
+            # Encode possible Plays 
+            #playerScore = scoreInfo[logObject["id"]]["score"] / scoreInfo[logObject["id"]]["numPlays"]
+            playerScore = scoreInfo[logObject["id"]]["score"]
+            scoreInfo[logObject["id"]]["numPlays"] -= 1
+            if len(logObject["possiblePlays"]) == 0:
+                continue
+
             possiblePlaysEncoded = encodePlays(logObject["possiblePlays"], 1)
             cardsOntable = encodePlays([logObject["cardsOnTable"]], 1)
 
@@ -145,21 +166,55 @@ class Game:
             
 
             # Encode the play that the player played
-            playerScore = -1
-            for i, player in enumerate(finalStandings):
-                if player.id == logObject["id"]:
-                    playerScore = 6 - i
-                    break
+            #playerScore = scoreInfo[logObject["id"]]["score"]
+            #playerScore = -1
+            #for i, player in enumerate(finalStandings):
+            #    if player.id == logObject["id"]:
+            #        #playerScore = 6 - i
+            #        if i <= 2:
+            #            playerScore = 3 - i
+            #        else:
+            #            playerScore = 2 - i
+            #        break
 
             # Encode is the player passed
             playerPass = [0]
             if len(logObject["cardsPlayed"]) == 0:
                 playerPass = [playerScore]
+            
+                
+            '''
+            cardsInHandAfter = np.zeros(54)
+            for i in range(len(handEncoded)):
+                if handEncoded[i] == 1:
+                    cardsInHandAfter[i] = 1
 
+            playAsCards = np.zeros(54)
+            for card in logObject["cardsPlayed"]:
+                playAsCards = self.encodeCardInPlayed(card, playAsCards)
+            
+            for i in range(len(playAsCards)):
+                if playAsCards[i] == 1 and cardsInHandAfter[i] == 1:
+                    cardsInHandAfter[i] = 0
+
+            lowestPlay = -1
+            for i in range(len(cardsInHandAfter)):
+                if cardsInHandAfter[i] == 1:
+                    lowestPlay = i
+                    break
+            
+            if (lowestPlay != -1 and lowestPlay >= 44) or (lowestPlay == -1 and (logObject["cardsPlayed"][0] == 14 or logObject["cardsPlayed"][0] == 2 or logObject["cardsPlayed"][0] == 3)):
+                playerScore = -10
+            '''
+
+
+                
             cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore)
+            
+
             # label is playerPass + cardsPlayedEncoded
             #outputRow = np.hstack((logObject["encodedPlayersIn"], possiblePlaysEncoded, handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
-            outputRow = np.hstack((logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
+            outputRow = np.hstack((logObject["id"], logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
             if len(outputArray) == 0:
                 outputArray = outputRow
             else:
@@ -285,7 +340,8 @@ if __name__ == "__main__":
         filename = f"GameLogs/gameFile{i}.csv"
         game_obj.outputLogToFile(filename)
         dataTable = game_obj.getTrainingData()
-    '''
+        '''
+
     game_obj = Game()
     filename = f"testfile.csv"
     game_obj.outputLogToFile(filename)

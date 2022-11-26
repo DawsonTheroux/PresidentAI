@@ -67,17 +67,17 @@ def encodePlays(plays, value):
             playNumber = 12
         elif play[0] == 3:
             playNumber = 13
-        elif play[0] > 3 and play[0] != 14:
+        elif play[0] > 3 and play[0] < 14:
             playNumber = play[0] - 2
 
         if len(play) == 1:            
-            encodedArr[((play[0]-1) * 4)] = value
+            encodedArr[((playNumber-1) * 4)] = value
         elif len(play) == 2:
-            encodedArr[((play[0]-1) * 4) + 1] = value
+            encodedArr[((playNumber-1) * 4) + 1] = value
         elif len(play) == 3:
-            encodedArr[((play[0]-1) * 4) + 2] = value
+            encodedArr[((playNumber-1) * 4) + 2] = value
         elif len(play) == 4:
-            encodedArr[((play[0]-1) * 4) + 3] = value
+            encodedArr[((playNumber-1) * 4) + 3] = value
         else:
             raise Exception(f"Tried to encode a play larger than 4")
     return encodedArr
@@ -156,8 +156,12 @@ class RandomCardInterface:
         #print(f" The cards on Table {cardOnTable}")
         #print(f"Player({player.id}) Please choose a card: {np.sort(player.hand)}")
         if len(possiblePlays) > 0:
-            randomPlay = np.random.randint(len(possiblePlays))
-            if randomPlay == len(possiblePlays):
+            if len(cardOnTable) > 0:
+                randomPlay = np.random.randint(len(possiblePlays) +1)
+            else:
+                randomPlay = np.random.randint(len(possiblePlays))
+            #print(f"Random Play chosen: {randomPlay} - len(possiblePlays): {len(possiblePlays)}")
+            if randomPlay >= len(possiblePlays):
                 play = []
             else:
                 play = possiblePlays[randomPlay]
@@ -194,7 +198,10 @@ class AIModelInterface:
     def promptCard(self, player, cardsOnTable):
         #print(f"Prompting AI player({player.id}) for a card")
         device = "cpu"
+        #print(f"({player.id}): Cards On Table: {cardsOnTable}")
         possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
+        #print(f"({player.id}): possiblePlays: {possiblePlays}")
+        #print(f"({player.id}): hand: {player.hand}")
         #print(f"Cards On Table: {cardsOnTable}")
         #print(f"PossiblePlays: {possiblePlays}")
         possiblePlaysEncoded = encodePlays(possiblePlays,1)
@@ -213,8 +220,8 @@ class AIModelInterface:
         
         # Data structuure: possiblePlayesEncoded(54), cardsOnTable, All cards enccoded(54)
         topPredsArr = []
-        data = np.hstack((encodedPlayers, possiblePlaysEncoded, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
-        #data = np.hstack((encodedPlayers, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
+        #data = np.hstack((encodedPlayers, possiblePlaysEncoded, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
+        data = np.hstack((encodedPlayers, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
         with torch.no_grad():
             #print(f"data.shape {data.shape}")
             if device == "cpu":
@@ -240,7 +247,11 @@ class AIModelInterface:
                 play = candidate
                 removeCardsFromHand(play,player)
                 break
-        #print(f'Playing: {play}') 
+        
+        #print(f"({player.id})Candidate: {candidate} - {predInd}")
+        #print(f"({player.id})possiblePlaysEncoded: {possiblePlaysEncoded} - {predInd}")
+        #print(f'({player.id})Playing: {play}') 
+        #print("--------------------------------")
         return play
 
 def decodePlay(codeIndex):
@@ -280,7 +291,7 @@ def decodePlay(codeIndex):
         card = 2
     elif card == 13:
         card = 3
-    elif card > 1 and card != 14:
+    elif card > 1 and card < 12:
         card = card + 2
 
     play = []
@@ -291,14 +302,14 @@ def decodePlay(codeIndex):
     return play
     
 #for i in range(14):
-#    play = []
-#    for j in range(4):
-#        play.append(i + 1)
-#        encoded = encodePlays([copy.deepcopy(play)], 1)
-#        print(f"Encoded {play}")
-#        print(f"Decoded - {decodePlay(np.argmax(encoded) + 1)}")
-#        print('-----')
-#exit(0)
+    #play = []
+    #for j in range(4):
+        #play.append(i + 1)
+        #encoded = encodePlays([copy.deepcopy(play)], 1)
+        #print(f"Encoded {play} - {np.argmax(encoded)} - {encoded}")
+        #print(f"Decoded - {decodePlay(np.argmax(encoded) + 1)}")
+        #print('-----')
+#:exit(0)
         
 
 

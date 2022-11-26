@@ -4,7 +4,7 @@ from CardInterfaces import decodePlay
 
 def analyzePlay(play):
     #playersIn, possiblePlays, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [6, 60, 114, 168, 222])
-    playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [6, 60, 114, 168])
+    playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
     #print(f"Players in ({playersIn.shape}): {playersIn}")
     #print(f"possiblePlays({possiblePlays.shape}): {possiblePlays}")
     #print(f"cardsOnTable({cardsOnTable.shape}): {cardsOnTable}")
@@ -45,11 +45,20 @@ def analyzePlay(play):
         
 
     playChosenIndex = np.argmax(playChosen)
+    if playChosen[playChosenIndex] == 0:
+        playChosenIndex = np.argmin(playChosen)
     positions = ["Ass", "Vice Ass", "Neutral2", "Neutral1", "Vice President", "President"]
-    position = positions[(int)(playChosen[playChosenIndex] - 1)]
+    position = -1
+    if playChosen[playChosenIndex] == -10:
+        position = "Auto Ass"
+    elif playChosen[playChosenIndex] > 0:
+        position = positions[int(playChosen[playChosenIndex] + 2)]
+    else:
+        position = positions[int(playChosen[playChosenIndex] + 3)]
+    #position = positions[(int)(playChosen[playChosenIndex] - 1)]
     chosenPlay = decodePlay(playChosenIndex)
     outputString = ""
-    outputString += f"----{position}-----:\n"
+    outputString += f"----{playerID}:({playChosen[playChosenIndex]})-----:\n"
     outputString += f"Discarded Cards: {allCardsPlayed}\n"
     outputString += f"Player Count: {playerCount}\n"
     outputString += f"Cards On Table: {cardsOnTableDecoded}\n"
@@ -65,7 +74,7 @@ def analyzeOutput(filename, outputFilename = None):
     #print(f"shapeTupple: {shapeTouple[0]}")
     #n = shapeTouple[0] / (55 + 168)
     #gameMatrix = gameMatrix.reshape((-1, 277))
-    gameMatrix = gameMatrix.reshape((-1, 223))
+    gameMatrix = gameMatrix.reshape((-1, 224))
     #print(gameMatrix.shape)
     #print(gameMatrix)
     outputString = ""
