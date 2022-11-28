@@ -5,13 +5,16 @@ class Player:
     def __init__(self, interfaceType, id, model = None, game = None):
         self.hand = []
         self.cardInterface = None
-        self.id = id
         self.playedHand = False
         if interfaceType == 0:
+            self.id = id
             self.cardInterface = CardInterfaces.CommandLineInterface()
         elif interfaceType == 1:
+            self.id = id + 0.1
+            #self.id = id
             self.cardInterface = CardInterfaces.RandomCardInterface()
         elif interfaceType == 2:
+            self.id = id
             self.cardInterface = CardInterfaces.AIModelInterface(game, model)
         else:
             print("That is not a card interface")

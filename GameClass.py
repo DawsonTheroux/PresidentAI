@@ -60,10 +60,10 @@ class Game:
     def assignPlayers(self, gameType=0, model=None):
 
         if gameType == 1:
-            for i in range(6):
+            for i in range(3):
                 self.players.append(PlayerModule.Player(2,i, model, self))
-            #for i in range(2):
-                #self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+            for i in range(3):
+                self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
         elif gameType == 2:
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model, self))
@@ -143,13 +143,19 @@ class Game:
             else:
                 scoreInfo[player.id]["score"] = 2 - i
             scoreInfo[player.id]["numPlays"] = 0
-        
-        for logObject in self.logArray:
-            scoreInfo[logObject["id"]]["numPlays"] += 1
+
+        aiPlayerKeys = []
+        for key in scoreInfo.keys():
+            if int(key) == key:
+                aiPlayerKeys.append(key)
+
 
         allCardsPlayed = []
         allCardsEncoded = np.zeros(54)
         for logObject in self.logArray:
+            if len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys:
+                continue
+                 
             # Encode possible Plays 
             #playerScore = scoreInfo[logObject["id"]]["score"] / scoreInfo[logObject["id"]]["numPlays"]
             playerScore = scoreInfo[logObject["id"]]["score"]
