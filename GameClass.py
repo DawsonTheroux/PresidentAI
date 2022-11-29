@@ -62,7 +62,7 @@ class Game:
         if gameType == 1:
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model, self))
-            #for i in range(2):
+            #for i in range(3):
                 #self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
         elif gameType == 2:
             for i in range(6):
