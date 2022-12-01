@@ -14,7 +14,7 @@ from CardInterfaces import encodePlays
 
 class Game:
 
-    def __init__(self, gametype=0, model=None):
+    def __init__(self, gametype=0, model1=None, model2=None):
         self.players = []
         self.cards = []
         self.cardsPlayed = []
@@ -24,7 +24,7 @@ class Game:
         self.autoAss = []
         self.logArray = []
         self.encodedPlayedCards = np.zeros(54)
-        self.assignPlayers(gametype, model)    # This will set self.players array to Player Objects.
+        self.assignPlayers(gametype, model1, model2)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
         self.gameLoop()
 
@@ -57,30 +57,45 @@ class Game:
         #for player in self.players:
             #print(f"player({player.id}): {player.hand}")
 
-    def assignPlayers(self, gameType=0, model=None):
+    def assignPlayers(self, gameType=0, model1=None, model2=None):
 
         if gameType == 1:
-            for i in range(3):
-                self.players.append(PlayerModule.Player(2,i, model, self))
-            for i in range(3):
-                self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+            for i in range(6):
+                self.players.append(PlayerModule.Player(2,i, model1, self))
+            #for i in range(3):
+                #self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
         elif gameType == 2:
             for i in range(6):
-                self.players.append(PlayerModule.Player(2,i, model, self))
-        else:
+                self.players.append(PlayerModule.Player(2,i, model1, self))
+        if gameType == 3: #Model with random players
+            for i in range(3):
+                self.players.append(PlayerModule.Player(2,i + 0.2, model1, self))
+            for i in range(3):
+                self.players.append(PlayerModule.Player(1, i))
+
+        elif gameType == 0:
             for i in range(6): #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players else:
                     self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+        elif gameType == 4:
+            self.players.append(PlayerModule.Player(0, 42.1)) # Right now this is generating all CMD line players
+            for i in range(5): #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players else:
+                    self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+        elif gameType == 5: #Evaluate Model
+            for i in range(3):
+                self.players.append(PlayerModule.Player(2,i + 0.2, model1, self))
+                self.players.append(PlayerModule.Player(2,i + 0.1, model2, self))
         
 
-    def printResults(self):
+    def getResults(self):
         resultsArr = []
         for player in self.standings:
             resultsArr.append(player)
         for player in self.autoAss:
+            resultsArr.remove(player)
             resultsArr.append(player)
         
-        for i, player in enumerate(resultsArr):
-            print(f"{i}. Player({player.id})")
+        #for i, player in enumerate(resultsArr):
+            #print(f"{i}. Player({player.id})")
 
         return resultsArr
 
@@ -102,6 +117,7 @@ class Game:
         #print(f"cardsPlayed({cardsPlayed})")
         #print(f"possiblePlays({possiblePlays})")
         #print(f"Hand Before Play({handBeforePlay})")
+        #print("--")
 
         encodedPlayers = np.zeros(6)
         for i, player in enumerate(self.players):
@@ -132,8 +148,8 @@ class Game:
         finalStandings = []
         for player in self.standings:
             finalStandings.append(player)
-        for player in self.autoAss:
-            finalStandings.append(player)
+        #for player in self.autoAss:
+            #finalStandings.append(player)
 
         scoreInfo = {}
         for i, player in enumerate(finalStandings):
@@ -188,31 +204,19 @@ class Game:
             if len(logObject["cardsPlayed"]) == 0:
                 playerPass = [playerScore]
             
-                
-            '''
-            cardsInHandAfter = np.zeros(54)
-            for i in range(len(handEncoded)):
-                if handEncoded[i] == 1:
-                    cardsInHandAfter[i] = 1
-
-            playAsCards = np.zeros(54)
+            
+            # If the hand has only power cards after the play, then set the score to -10.
+            nonPowerCardsInHand = []
+            for card in logObject["cardsInHand"]:
+                if card != 2 and card != 3 and card != 14:
+                    nonPowerCardsInHand.append(card)
             for card in logObject["cardsPlayed"]:
-                playAsCards = self.encodeCardInPlayed(card, playAsCards)
-            
-            for i in range(len(playAsCards)):
-                if playAsCards[i] == 1 and cardsInHandAfter[i] == 1:
-                    cardsInHandAfter[i] = 0
-
-            lowestPlay = -1
-            for i in range(len(cardsInHandAfter)):
-                if cardsInHandAfter[i] == 1:
-                    lowestPlay = i
-                    break
-            
-            if (lowestPlay != -1 and lowestPlay >= 44) or (lowestPlay == -1 and (logObject["cardsPlayed"][0] == 14 or logObject["cardsPlayed"][0] == 2 or logObject["cardsPlayed"][0] == 3)):
+                for nonPowerCard in nonPowerCardsInHand:
+                    if card == nonPowerCard:
+                        nonPowerCardsInHand.remove(nonPowerCard)
+                        break
+            if len(nonPowerCardsInHand) == 0 and len(logObject["cardsInHand"]) > len(logObject["cardsPlayed"]):
                 playerScore = -10
-            '''
-
 
                 
             cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore)
@@ -288,8 +292,7 @@ class Game:
                 if len(self.players[turnIndex].hand) == 0:
                     if 2 in cardsToPlay or 3 in cardsToPlay or 14 in cardsToPlay: # The player is autoAss for finishing on a powercard
                         self.autoAss.append(self.players[turnIndex])
-                    else:
-                        self.standings.append(self.players[turnIndex])
+                    self.standings.append(self.players[turnIndex])
                     lastPlayedIsFinished = True
                     self.players.pop(turnIndex)
 
@@ -346,9 +349,10 @@ if __name__ == "__main__":
         filename = f"GameLogs/gameFile{i}.csv"
         game_obj.outputLogToFile(filename)
         dataTable = game_obj.getTrainingData()
-        '''
+    '''
 
-    game_obj = Game()
+    game_obj = Game(4)
+
     filename = f"testfile.csv"
     game_obj.outputLogToFile(filename)
 

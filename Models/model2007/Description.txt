@@ -1,0 +1,9 @@
+Optimizer = Adam (default)
+Num Games = 2000
+Epochs = 1
+gne =15
+3 bots in game
+Bot picks with 1/1+num plays percent if they are going to pass
+Reward: Placement only
+Final Dataset Shape
+ (62461, 224)

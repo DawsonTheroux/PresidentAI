@@ -1,7 +1,8 @@
 import torch
 import numpy as np
 from CardInterfaces import decodePlay
-
+from GameClass import Game
+from PresidentNeuralNet import PresidentNet
 def analyzePlay(play):
     #playersIn, possiblePlays, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [6, 60, 114, 168, 222])
     playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
@@ -91,5 +92,54 @@ def analyzeOutput(filename, outputFilename = None):
         #input()
     #print(f"gameMatrix.shape: {gameMatrix.shape}")
 
+
+def calculateFitness(evalModel, competatorModel):
+    # Calculates the fitness value of the evalModel compared to the competatorModel
+    evalModelIds = [0.2, 1.2, 2.2]
+    competatorModelIds = [0.1, 1.1, 2.1]
+    fitness = 0
+    for i in range(1000):
+        if i != 0 and i % 250 == 0:
+            print(f"Running Game {i}")
+        if competatorModel == "random":
+            game_obj = Game(3, evalModel)
+        else:
+            game_obj = Game(5, evalModel, competatorModel)
+        resultsArr = game_obj.getResults()
+        #print(f"ResultsArray[0].id: {resultsArr[0].id}")
+        if resultsArr[0].id in evalModelIds:
+            fitness += 1
+    return fitness
+
+def modelFitnessFromFiles(evalModelPath, competatorModelPath):
+    evalModel = PresidentNet()
+    competatorModel = PresidentNet()
+    evalModel.load_state_dict(torch.load(evalModelPath))
+
+    if competatorModelPath != "random":
+        competatorModel.load_state_dict(torch.load(competatorModelPath))
+    else:
+        competatorModel = "random"
+    return calculateFitness(evalModel, competatorModel)
+
+
+
 if __name__ == "__main__":
-    analyzeOutput("testfile.csv")
+    ''' Compare generations to random
+    for i in range(15):
+        print(f"Evaluating Gen {i}")
+        evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model2008\\model2008_gen{i}.pt"
+        print(f"fitness {modelFitnessFromFiles(evalModelPath, 'random')}")
+        print("-----")
+    '''
+    # Compare generations to previous
+    for i in range(15):
+        print(f"Evaluating Gen {i}")
+        evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model2008\\model2008_gen{i}.pt"
+        competatorPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model2008\\model2008_gen{i-1}.pt"
+        if i == 0:
+            print(f"fitness {modelFitnessFromFiles(evalModelPath, 'random')}")
+        else:
+            print(f"fitness {modelFitnessFromFiles(evalModelPath, competatorPath)}")
+        print("-----")
+    #analyzeOutput("testfile.csv")

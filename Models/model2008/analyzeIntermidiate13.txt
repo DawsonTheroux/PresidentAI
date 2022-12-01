@@ -1,0 +1,330 @@
+----[0.]:(-3.0)-----:
+Discarded Cards: []
+Player Count: 6
+Cards On Table: []
+Cards in hand: [1, 1, 2, 4, 5, 6, 10, 11, 12]
+Play Chosen: [1, 1]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1]
+Player Count: 6
+Cards On Table: [1, 1]
+Cards in hand: [2, 3, 3, 4, 5, 6, 8, 13, 13]
+Play Chosen: []
+----[2.]:(-1.0)-----:
+Discarded Cards: [1, 1]
+Player Count: 6
+Cards On Table: [1, 1]
+Cards in hand: [4, 5, 6, 7, 8, 8, 9, 9, 11]
+Play Chosen: [8, 8]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 8, 8]
+Player Count: 6
+Cards On Table: [8, 8]
+Cards in hand: [1, 3, 6, 7, 10, 11, 12, 13, 14]
+Play Chosen: []
+----[4.]:(-2.0)-----:
+Discarded Cards: [1, 1, 8, 8]
+Player Count: 6
+Cards On Table: [8, 8]
+Cards in hand: [2, 3, 7, 9, 10, 10, 12, 13, 14]
+Play Chosen: [10, 10]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 8, 8, 10, 10]
+Player Count: 6
+Cards On Table: [10, 10]
+Cards in hand: [1, 2, 4, 5, 7, 8, 9, 11, 12]
+Play Chosen: []
+----[0.]:(-3.0)-----:
+Discarded Cards: [1, 1, 8, 8, 10, 10]
+Player Count: 6
+Cards On Table: [10, 10]
+Cards in hand: [2, 4, 5, 6, 10, 11, 12]
+Play Chosen: []
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 8, 8, 10, 10]
+Player Count: 6
+Cards On Table: [10, 10]
+Cards in hand: [2, 3, 3, 4, 5, 6, 8, 13, 13]
+Play Chosen: []
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 8, 8, 10, 10]
+Player Count: 6
+Cards On Table: [10, 10]
+Cards in hand: [1, 3, 6, 7, 10, 11, 12, 13, 14]
+Play Chosen: []
+----[4.]:(-2.0)-----:
+Discarded Cards: [1, 1, 8, 8, 10, 10]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [2, 3, 7, 9, 12, 13, 14]
+Play Chosen: [12]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 8, 8, 10, 10, 12]
+Player Count: 6
+Cards On Table: [12]
+Cards in hand: [1, 2, 4, 5, 7, 8, 9, 11, 12]
+Play Chosen: [12]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [1, 2, 4, 5, 7, 8, 9, 11]
+Play Chosen: [4]
+----[0.]:(-3.0)-----:
+Discarded Cards: [1, 1, 4, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [4]
+Cards in hand: [2, 4, 5, 6, 10, 11, 12]
+Play Chosen: [4]
+----[0.]:(-3.0)-----:
+Discarded Cards: [1, 1, 4, 4, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [2, 5, 6, 10, 11, 12]
+Play Chosen: [5]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 4, 4, 5, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [5]
+Cards in hand: [2, 3, 3, 4, 5, 6, 8, 13, 13]
+Play Chosen: [5]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 4, 4, 5, 5, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [2, 3, 3, 4, 6, 8, 13, 13]
+Play Chosen: [6]
+----[2.]:(-1.0)-----:
+Discarded Cards: [1, 1, 4, 4, 5, 5, 6, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [6]
+Cards in hand: [4, 5, 6, 7, 9, 9, 11]
+Play Chosen: [6]
+----[2.]:(-1.0)-----:
+Discarded Cards: [1, 1, 4, 4, 5, 5, 6, 6, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [4, 5, 7, 9, 9, 11]
+Play Chosen: [4]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 4, 4, 4, 5, 5, 6, 6, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [4]
+Cards in hand: [1, 3, 6, 7, 10, 11, 12, 13, 14]
+Play Chosen: [6]
+----[4.]:(-2.0)-----:
+Discarded Cards: [1, 1, 4, 4, 4, 5, 5, 6, 6, 6, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [6]
+Cards in hand: [2, 3, 7, 9, 13, 14]
+Play Chosen: [7]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 4, 4, 4, 5, 5, 6, 6, 6, 7, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [7]
+Cards in hand: [1, 2, 5, 7, 8, 9, 11]
+Play Chosen: [7]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 4, 4, 4, 5, 5, 6, 6, 6, 7, 7, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [1, 2, 5, 8, 9, 11]
+Play Chosen: [5]
+----[0.]:(-3.0)-----:
+Discarded Cards: [1, 1, 4, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [5]
+Cards in hand: [2, 6, 10, 11, 12]
+Play Chosen: [6]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [6]
+Cards in hand: [2, 3, 3, 4, 8, 13, 13]
+Play Chosen: [8]
+----[2.]:(-1.0)-----:
+Discarded Cards: [1, 1, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [8]
+Cards in hand: [5, 7, 9, 9, 11]
+Play Chosen: [9]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 10, 10, 12, 12]
+Player Count: 6
+Cards On Table: [9]
+Cards in hand: [1, 3, 7, 10, 11, 12, 13, 14]
+Play Chosen: [12]
+----[4.]:(-2.0)-----:
+Discarded Cards: [1, 1, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 10, 10, 12, 12, 12]
+Player Count: 6
+Cards On Table: [12]
+Cards in hand: [2, 3, 9, 13, 14]
+Play Chosen: [2]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 2, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 10, 10, 12, 12, 12]
+Player Count: 6
+Cards On Table: [2]
+Cards in hand: [2, 3, 3, 4, 13, 13]
+Play Chosen: [3]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 10, 10, 12, 12, 12]
+Player Count: 6
+Cards On Table: [3]
+Cards in hand: [1, 3, 7, 10, 11, 13, 14]
+Play Chosen: [14]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 10, 10, 12, 12, 12, 14]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [1, 3, 7, 10, 11, 13]
+Play Chosen: [1]
+----[4.]:(-2.0)-----:
+Discarded Cards: [1, 1, 1, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 10, 10, 12, 12, 12, 14]
+Player Count: 6
+Cards On Table: [1]
+Cards in hand: [3, 9, 13, 14]
+Play Chosen: [9]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 1, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 10, 10, 12, 12, 12, 14]
+Player Count: 6
+Cards On Table: [9]
+Cards in hand: [1, 2, 8, 9, 11]
+Play Chosen: [9]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 1, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 14]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [1, 2, 8, 11]
+Play Chosen: [1]
+----[0.]:(-3.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 14]
+Player Count: 6
+Cards On Table: [1]
+Cards in hand: [2, 10, 11, 12]
+Play Chosen: [12]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 14]
+Player Count: 6
+Cards On Table: [12]
+Cards in hand: [2, 3, 4, 13, 13]
+Play Chosen: [2]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 14]
+Player Count: 6
+Cards On Table: [2]
+Cards in hand: [3, 7, 10, 11, 13]
+Play Chosen: [3]
+----[4.]:(-2.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 14]
+Player Count: 6
+Cards On Table: [3]
+Cards in hand: [3, 13, 14]
+Play Chosen: [14]
+----[4.]:(-2.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 14, 14]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [3, 13]
+Play Chosen: [13]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 13, 14, 14]
+Player Count: 6
+Cards On Table: [13]
+Cards in hand: [2, 8, 11]
+Play Chosen: [2]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 13, 14, 14]
+Player Count: 6
+Cards On Table: [2]
+Cards in hand: [3, 4, 13, 13]
+Play Chosen: [3]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 13, 14, 14]
+Player Count: 6
+Cards On Table: []
+Cards in hand: [4, 13, 13]
+Play Chosen: [4]
+----[2.]:(-1.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 13, 14, 14]
+Player Count: 6
+Cards On Table: [4]
+Cards in hand: [5, 7, 9, 11]
+Play Chosen: [5]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 13, 14, 14]
+Player Count: 6
+Cards On Table: [5]
+Cards in hand: [7, 10, 11, 13]
+Play Chosen: [7]
+----[4.]:(-2.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 13, 14, 14]
+Player Count: 6
+Cards On Table: [7]
+Cards in hand: [3]
+Play Chosen: [3]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 13, 14, 14]
+Player Count: 5
+Cards On Table: []
+Cards in hand: [8, 11]
+Play Chosen: [8]
+----[0.]:(-3.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 12, 12, 12, 12, 13, 14, 14]
+Player Count: 5
+Cards On Table: [8]
+Cards in hand: [2, 10, 11]
+Play Chosen: [10]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 12, 12, 12, 12, 13, 14, 14]
+Player Count: 5
+Cards On Table: [10]
+Cards in hand: [13, 13]
+Play Chosen: [13]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 12, 12, 12, 12, 13, 13, 14, 14]
+Player Count: 5
+Cards On Table: [13]
+Cards in hand: [10, 11, 13]
+Play Chosen: [13]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 12, 12, 12, 12, 13, 13, 13, 14, 14]
+Player Count: 5
+Cards On Table: []
+Cards in hand: [10, 11]
+Play Chosen: [10]
+----[5.]:(3.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10, 12, 12, 12, 12, 13, 13, 13, 14, 14]
+Player Count: 5
+Cards On Table: [10]
+Cards in hand: [11]
+Play Chosen: [11]
+----[0.]:(-3.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10, 11, 12, 12, 12, 12, 13, 13, 13, 14, 14]
+Player Count: 4
+Cards On Table: [11]
+Cards in hand: [2, 11]
+Play Chosen: [11]
+----[0.]:(-3.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10, 11, 11, 12, 12, 12, 12, 13, 13, 13, 14, 14]
+Player Count: 4
+Cards On Table: []
+Cards in hand: [2]
+Play Chosen: [2]
+----[1.]:(2.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10, 11, 11, 12, 12, 12, 12, 13, 13, 13, 14, 14]
+Player Count: 3
+Cards On Table: []
+Cards in hand: [13]
+Play Chosen: [13]
+----[2.]:(-1.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14]
+Player Count: 2
+Cards On Table: []
+Cards in hand: [7, 9, 11]
+Play Chosen: [7]
+----[3.]:(1.0)-----:
+Discarded Cards: [1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14]
+Player Count: 2
+Cards On Table: [7]
+Cards in hand: [11]
+Play Chosen: [11]

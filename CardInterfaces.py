@@ -166,11 +166,17 @@ class RandomCardInterface:
             else:
                 play = possiblePlays[randomPlay]
                 removeCardsFromHand(play, player)
+
             # Pick 1 of the possible plays
 
         # Get all available options
         # If the list of availble options is nothing,k
         # Pick a random option 
+        #print(f"--Player({player.id})--")
+        #print(f"CardsOnTable: {cardOnTable}")
+        #print(f"PlayerHand: {player.hand}")
+        #print(f"Play: {play}")
+        #print("----------------")
         return play
 
 
