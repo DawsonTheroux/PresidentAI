@@ -59,17 +59,17 @@ class Game:
 
     def assignPlayers(self, gameType=0, model1=None, model2=None):
 
-        if gameType == 1:
+        if gameType == 1: # All players a President model
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
             #for i in range(3):
-                #self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
-        elif gameType == 2:
+                #self.players.append(PlayerModule.Player(1, i)) 
+        elif gameType == 2: # All players are model.
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
         if gameType == 3: #Model with random players
             for i in range(3):
-                self.players.append(PlayerModule.Player(2,i + 0.2, model1, self))
+                self.players.append(PlayerModule.Player(2,i, model1, self))
             for i in range(3):
                 self.players.append(PlayerModule.Player(1, i))
 
@@ -82,12 +82,13 @@ class Game:
                     self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
         elif gameType == 5: #Evaluate Model
             for i in range(3):
-                self.players.append(PlayerModule.Player(2,i + 0.2, model1, self))
+                self.players.append(PlayerModule.Player(2,i, model1, self))
                 self.players.append(PlayerModule.Player(2,i + 0.1, model2, self))
         
 
     def getResults(self):
         resultsArr = []
+        self.standings
         for player in self.standings:
             resultsArr.append(player)
         for player in self.autoAss:
@@ -169,9 +170,6 @@ class Game:
         allCardsPlayed = []
         allCardsEncoded = np.zeros(54)
         for logObject in self.logArray:
-            if len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys:
-                continue
-                 
             # Encode possible Plays 
             #playerScore = scoreInfo[logObject["id"]]["score"] / scoreInfo[logObject["id"]]["numPlays"]
             playerScore = scoreInfo[logObject["id"]]["score"]
@@ -179,6 +177,7 @@ class Game:
             if len(logObject["possiblePlays"]) == 0:
                 continue
 
+            autoAssThisTurn = False
             possiblePlaysEncoded = encodePlays(logObject["possiblePlays"], 1)
             cardsOntable = encodePlays([logObject["cardsOnTable"]], 1)
 
@@ -206,24 +205,37 @@ class Game:
             
             
             # If the hand has only power cards after the play, then set the score to -10.
-            nonPowerCardsInHand = []
-            for card in logObject["cardsInHand"]:
-                if card != 2 and card != 3 and card != 14:
-                    nonPowerCardsInHand.append(card)
-            for card in logObject["cardsPlayed"]:
-                for nonPowerCard in nonPowerCardsInHand:
-                    if card == nonPowerCard:
-                        nonPowerCardsInHand.remove(nonPowerCard)
-                        break
-            if len(nonPowerCardsInHand) == 0 and len(logObject["cardsInHand"]) > len(logObject["cardsPlayed"]):
-                playerScore = -10
+            if playerScore != -10:
+                nonPowerCardsInHand = []
+                for card in logObject["cardsInHand"]:
+                    if card != 2 and card != 3 and card != 14:
+                        nonPowerCardsInHand.append(card)
+                for card in logObject["cardsPlayed"]:
+                    for nonPowerCard in nonPowerCardsInHand:
+                        if card == nonPowerCard:
+                            nonPowerCardsInHand.remove(nonPowerCard)
+                            break
+                if len(nonPowerCardsInHand) == 0 and len(logObject["cardsInHand"]) > len(logObject["cardsPlayed"]):
+                    playerScore = scoreInfo[logObject["id"]]["score"] = -10
+                    playerScore = -10
+                    autoAssThisTurn = True
 
                 
             cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore)
+            for card in logObject["cardsPlayed"]:
+                allCardsEncoded = self.encodeCardInPlayed(card, allCardsEncoded)
+                allCardsPlayed.append(card)
+            allCardsPlayed.sort()
             
 
             # label is playerPass + cardsPlayedEncoded
             #outputRow = np.hstack((logObject["encodedPlayersIn"], possiblePlaysEncoded, handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
+            if len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys:
+                continue
+            
+            # If this person already got auto ass, then don't log unless it happend this turn (the play was non-powercard)
+            if not autoAssThisTurn and scoreInfo[logObject["id"]]["score"] == -10:
+                continue
             outputRow = np.hstack((logObject["id"], logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
             if len(outputArray) == 0:
                 outputArray = outputRow
@@ -231,10 +243,6 @@ class Game:
                 outputArray = np.vstack((outputArray, outputRow))
 
             # Encode the all the cards in the cards played.
-            for card in logObject["cardsPlayed"]:
-                allCardsEncoded = self.encodeCardInPlayed(card, allCardsEncoded)
-                allCardsPlayed.append(card)
-            allCardsPlayed.sort()
 
         return outputArray
 
