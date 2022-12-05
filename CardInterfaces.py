@@ -35,12 +35,18 @@ class CommandLineInterface:
                 cardNoChosen = False
                 return cardsToPlay
 
-def encodePlays(plays, value):
+def encodePlays(plays, value, oneHot=-1):
     # Singles(14) go from 0-14
     # Doubles(14) go from 15-28
     # Tripples(13) go from 28-40
     # Bombs(13) go from 41-53
-    encodedArr = np.zeros(54)
+    if oneHot == -1:
+        encodedArr = -np.ones(54)
+    elif oneHot == 0:
+        encodedArr = np.zeros(54)
+    else:
+        assert False, "encodePlays(plays,value,oneHot=-1): must send oneHot value of 0 or -1"
+
     #doublesPadding = 14
     #tripplesPadding = 28
     #bombsPadding = 41
@@ -188,7 +194,7 @@ class AIModelInterface:
         self.game = game
 
     def encodeCardsInHand(self, hand):
-        encodedHand = np.zeros(54)
+        encodedHand = -np.ones(54)
         for i, card in enumerate(hand):
             valueSet = False
             valueIndex = (card-1) * 4
@@ -203,7 +209,7 @@ class AIModelInterface:
 
     def promptCard(self, player, cardsOnTable):
         #print(f"Prompting AI player({player.id}) for a card")
-        device = "cpu"
+        device = "cuda"
         #print(f"({player.id}): Cards On Table: {cardsOnTable}")
         possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
         #print(f"({player.id}): possiblePlays: {possiblePlays}")
@@ -211,6 +217,7 @@ class AIModelInterface:
         #print(f"Cards On Table: {cardsOnTable}")
         #print(f"PossiblePlays: {possiblePlays}")
         possiblePlaysEncoded = encodePlays(possiblePlays,1)
+        #print(f"Possible plays encoded {possiblePlaysEncoded}")
         if len(possiblePlays) == 0:
             return []
         #print(f"size of possiblePlays {possiblePlaysEncoded.shape}")
@@ -218,7 +225,7 @@ class AIModelInterface:
         encodedHand = self.encodeCardsInHand(player.hand)
         #print(f"size of cardsOnTable {cardsOnTableEncoded.shape}")
         #print(f"size of encoded played cards: {self.game.encodedPlayedCards}")
-        encodedPlayers = np.zeros(6)
+        encodedPlayers = -np.ones(6)
         for i in range(len(self.game.players)):
             encodedPlayers[i] = 1
             
@@ -227,10 +234,18 @@ class AIModelInterface:
         # Data structuure: possiblePlayesEncoded(54), cardsOnTable, All cards enccoded(54)
         topPredsArr = []
         #data = np.hstack((encodedPlayers, possiblePlaysEncoded, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
+        '''
+        print(f"EncodedPlayersIn: {encodedPlayers}")
+        print(f"Hand: {player.hand}")
+        print(f"encodedHand: {encodedHand}")
+        print(f"cardsOnTable: {cardsOnTable}")
+        print(f"encodedCardsOnTable: {cardsOnTableEncoded}")
+        print(f"discardedCards: {self.game.encodedPlayedCards}")
+        '''
         data = np.hstack((encodedPlayers, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
         with torch.no_grad():
             #print(f"data.shape {data.shape}")
-            if device == "cpu":
+            if device == "cuda":
                 data = torch.from_numpy(data).float().cpu()
             else:
                 data = torch.from_numpy(data).float().cuda()
@@ -249,7 +264,7 @@ class AIModelInterface:
             candidate = decodePlay(predInd)
             if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
                 break
-            elif possiblePlaysEncoded[predInd-1] != 0:
+            elif possiblePlaysEncoded[predInd-1] != -1:
                 play = candidate
                 removeCardsFromHand(play,player)
                 break
@@ -261,28 +276,8 @@ class AIModelInterface:
         return play
 
 def decodePlay(codeIndex):
-    #doublesPadding = 14
-    #tripplesPadding = 28
-    #bombsPadding = 41
-
-    #if(codeIndex == 0):
-    #    return []
-    #elif(codeIndex <= 14):
-    #    card = codeIndex 
-    #    return [card]
-    #elif(codeIndex - doublesPadding <= 14):
-    #    card = codeIndex - doublesPadding
-    #    return [card,card]
-    #elif(codeIndex - tripplesPadding <= 13):
-    #    card = codeIndex - tripplesPadding
-    #    return [card,card, card]
-    #elif(codeIndex - bombsPadding <= 13):
-    #    card = codeIndex - bombsPadding
-    #    return [card,card, card, card]
-    #else:
-    #    print("INVALID PLAY")
-    #    return None
-
+    # Decode plays by index.
+    # Plays go in order 0 =1; 1=1,1; 44=2; 45=2,2
     if(codeIndex == 0):
         return []
     codeIndex = codeIndex - 1
@@ -315,7 +310,7 @@ def decodePlay(codeIndex):
         #print(f"Encoded {play} - {np.argmax(encoded)} - {encoded}")
         #print(f"Decoded - {decodePlay(np.argmax(encoded) + 1)}")
         #print('-----')
-#:exit(0)
+#exit(0)
         
 
 

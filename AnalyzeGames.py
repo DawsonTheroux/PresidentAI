@@ -4,6 +4,8 @@ from CardInterfaces import decodePlay
 from GameClass import Game
 from PresidentNeuralNet import PresidentNet
 import json
+import time
+import threading
 
 def analyzePlay(play):
     #playersIn, possiblePlays, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [6, 60, 114, 168, 222])
@@ -125,6 +127,7 @@ def calculateFitness(evalModel, competatorModel, numberOfGames = 500):
         else:
             competatorFitness += 1
 
+        '''
         if resultsArr[3].id in evalModelIds:
             fitness -= 1
         else:
@@ -139,10 +142,11 @@ def calculateFitness(evalModel, competatorModel, numberOfGames = 500):
             fitness -= 3
         else:
             competatorFitness -= 3
+        '''
         
 
-    finalFitness = fitness - competatorFitness
-    return finalFitness
+    #finalFitness = fitness - competatorFitness
+    return fitness, competatorFitness
 
 def modelFitnessFromFiles(evalModelPath, competatorModelPath, numberOfGames=500):
     evalModel = PresidentNet()
@@ -155,9 +159,82 @@ def modelFitnessFromFiles(evalModelPath, competatorModelPath, numberOfGames=500)
         competatorModel = "random"
     return calculateFitness(evalModel, competatorModel, numberOfGames)
 
+class generationThread (threading.Thread):
+    def __init__(self, threadID, name, model):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.model = model
+        self.dataset = None
+    def run(self):
+        print(f"Starting  {self.name}")
+        self.dataset = generateOneThousandGames(self.threadID, self.model)
+        print(f"Exiting {self.name}")
 
+def generateOneThousandGames(threadId, model):
+    dataset = None
+    notSet = True
+
+    # Generate the initial random Games.
+    for i in range(1000): 
+        if i % 250 == 0:
+            print(f"Thread: {threadId} playing Game {i}")
+        if model == "random":
+            game_obj = Game()
+        else:
+            game_obj = Game(1, model)
+        if notSet:
+            notSet = False
+            dataset = game_obj.getTrainingData()
+        else:
+            dataset = np.vstack((dataset, game_obj.getTrainingData()))
+    return dataset
+
+def generateGamesWithMultiThreading(model, numWorkers, outputPath, outputToFile):
+
+    start_time = time.time()
+    threads = []
+    for i in range(numWorkers):
+        threads.append(generationThread({i + 1}, f"Thread-{i+1}", model))
+        threads[i].start()
+    
+    for t in threads:
+        t.join()
+    
+    fullDataset = None
+    notSet = True
+
+    datasetArray = []
+    for t in threads:
+        datasetArray.append(t.dataset)
+    
+    #print(datasetArray)
+    fullDataset = np.vstack(datasetArray)
+
+    '''
+    for t in threads:
+        if notSet:
+            fullDataset = t.dataset
+            notSet = False
+        else:
+            fullDataset = np.vstack((fullDataset, t.dataset))
+    '''
+    
+
+    #print(f"FullDataset shape: {fullDataset.shape}")
+    if outputToFile != False:
+        fullDataset.tofile(outputPath, sep = ",")
+
+
+    #print(f"datasetShape: {fullDataset.shape}")
+
+    print("All Threads finished")
+    print(f"Total Time: {time.time() - start_time}")
+    return fullDataset
 
 if __name__ == "__main__":
+    generateGamesWithMultiThreading("random", 10, "non", False)
+
     ''' Compare generations to random
     for i in range(15):
         print(f"Evaluating Gen {i}")
@@ -165,7 +242,16 @@ if __name__ == "__main__":
         print(f"fitness {modelFitnessFromFiles(evalModelPath, 'random')}")
         print("-----")
     '''
-    numberOfGenerations = 8
+    '''
+    evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model2008\\model2008_gen7.pt"
+    competatorPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model2010\\model2010_gen8.pt"
+    numberOfGamesVsModel = 2500
+    for i in range(10):
+        fitness, competatorFitness = modelFitnessFromFiles(evalModelPath, competatorPath, numberOfGamesVsModel)
+        print(f"Fitness {i}: {fitness} -- Competator Fitness: {competatorFitness}")
+    '''
+    '''
+    numberOfGenerations = 9
     firstGenerationNumber = 8
     numberOfGamesVsRandom = 100
     numberOfGamesVsModel = 500
@@ -186,9 +272,9 @@ if __name__ == "__main__":
             #############################
             competatorPath = "random"
             #############################
-            generationFitness = modelFitnessFromFiles(evalModelPath, competatorPath, numberOfGamesVsRandom)
+            generationFitness, competatorFitness = modelFitnessFromFiles(evalModelPath, competatorPath, numberOfGamesVsRandom)
             generationPerformances.append(generationFitness)
-            print(f"Model {modelName}, Generation: {j} - Fitness: {generationFitness}")
+            print(f"Model {modelName}, Generation: {j} - Fitness: {generationFitness} - Random Fitness: {competatorFitness}")
         print("-----")
         modelPerformances.append(generationPerformances)
     
@@ -208,17 +294,6 @@ if __name__ == "__main__":
                 highestIndex = j
         bestPerformingGenerations.append(highestIndex)
 
-        '''
-        for j in range(len(modelPerformances[i])):
-            currentScore = modelPerformances[i][j]
-            if lastScore == None:
-                lastScore = currentScore
-            elif (currentScore - lastScore) < 0:
-                bestPerformingGenerations.append(j)
-                break
-            else:
-                lastScore = currentScore
-        '''
     
     matchUpSpread = {}
     for i in range(numberOfGenerations):
@@ -238,16 +313,26 @@ if __name__ == "__main__":
             if competatorModelName < 10:
                 competatorPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model200{competatorModelName}\\model200{competatorModelName}_gen{bestCompetatorGeneration}.pt"
             print(f"Running Match: Model={modelName}|Gen={bestGeneration} vs. Competator={competatorModelName}|Gen={bestCompetatorGeneration}")
-            fitness = modelFitnessFromFiles(evalModelPath, competatorPath, numberOfGamesVsModel)
+            fitness, competatorFitness = modelFitnessFromFiles(evalModelPath, competatorPath, numberOfGamesVsModel)
             matchUpSpread[modelName][competatorModelName] = {}
             matchUpSpread[modelName][competatorModelName]["fitnessValue"] = fitness
-            matchUpSpread[modelName][competatorModelName]["Winning?"] = fitness > 0
+            matchUpSpread[modelName][competatorModelName]["Winning?"] = fitness > competatorFitness
     
     print(f" Match up spread: {matchUpSpread}")
     with open('MatchUpSpread.txt', 'w') as convert_file:
         convert_file.write(json.dumps(matchUpSpread))
-            
+    '''
 
 
+    '''
             
-    #analyzeOutput("testfile.csv")
+    evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model2008\\model2008_gen8.pt"
+    evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model2008\\model2008_gen8.pt"
+    evalModelPath =  "D:\\school\\COMP3106\\Project\\PresidentAI\\model2017_gen6.pt"
+    model = PresidentNet()
+    model.load_state_dict(torch.load(evalModelPath, map_location=torch.device('cpu')))
+    game_obj = Game(1, model)
+    filename = "testfile.csv"
+    game_obj.outputLogToFile(filename)
+    analyzeOutput(filename)
+    '''
