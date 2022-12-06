@@ -237,7 +237,7 @@ class Game:
                         break
             if len(nonPowerCardsInHand) == 0 and len(logObject["cardsInHand"]) > len(logObject["cardsPlayed"]):
                 #scoreInfo[logObject["id"]]["score"] = -10
-                playerScore = 20
+                playerScore = 1000
                 autoAssThisTurn = True
 
                 
