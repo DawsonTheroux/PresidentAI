@@ -291,10 +291,14 @@ if __name__ == "__main__":
     '''
 
     
-    game_obj = Game()
-
     filename = f"testfile.csv"
-    game_obj.outputLogToFile(filename)
+    game_obj = Game()
+    trainingData1 = game_obj.getTrainingData()
+    game_obj = Game()
+    trainingData2 = game_obj.getTrainingData()
+    allTrainingData = [trainingData1, trainingData2]
+    trainingData = np.vstack(allTrainingData)
+    trainingData.tofile(filename, sep=",")
     analyzeOutput(filename)
     '''
     for i in range(15):
