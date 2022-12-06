@@ -88,17 +88,19 @@ class Game:
 
     def getResults(self):
         resultsArr = []
+        autoAssIds = []
         self.standings
         for player in self.standings:
             resultsArr.append(player)
         for player in self.autoAss:
+            autoAssIds.append(player.id)
             resultsArr.remove(player)
             resultsArr.append(player)
         
         #for i, player in enumerate(resultsArr):
             #print(f"{i}. Player({player.id})")
 
-        return resultsArr
+        return resultsArr, autoAssIds
 
     def resetPlayers(self):
         for player in self.players:

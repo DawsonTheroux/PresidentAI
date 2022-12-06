@@ -245,7 +245,7 @@ class AIModelInterface:
         data = np.hstack((encodedPlayers, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
         with torch.no_grad():
             #print(f"data.shape {data.shape}")
-            if device == "cuda":
+            if device == "cpu":
                 data = torch.from_numpy(data).float().cpu()
             else:
                 data = torch.from_numpy(data).float().cuda()
