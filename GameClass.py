@@ -170,7 +170,8 @@ class Game:
                 aiPlayerKeys.append(key)
 
         for logObject in self.logArray:
-            scoreInfo[logObject["id"]]["numPlays"] += 1
+            if len(logObject["possiblePlays"]) != 0 and len(logObject["cardsPlayed"]) != 0:
+                scoreInfo[logObject["id"]]["numPlays"] += 1
 
         allCardsPlayed = []
         allCardsEncoded = -np.ones(54)
@@ -178,9 +179,11 @@ class Game:
         for logObject in self.logArray:
             # Encode possible Plays 
             #playerScore = scoreInfo[logObject["id"]]["score"] / scoreInfo[logObject["id"]]["numPlays"]
-            scoreInfo[logObject["id"]]["numPlays"] -= 1
             if len(logObject["possiblePlays"]) == 0:
                 continue
+            
+            if len(logObject["cardsPlayed"]) != 0:
+                scoreInfo[logObject["id"]]["numPlays"] -= 1
             
 
             playerScore = scoreInfo[logObject["id"]]["numPlays"]
