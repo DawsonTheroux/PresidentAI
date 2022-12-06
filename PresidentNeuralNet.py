@@ -45,5 +45,5 @@ class PresidentNet(nn.Module):
         output = F.log_softmax(x, dim=0)
         return output
 
-device = "cpu"
+device = "cuda"
 model = PresidentNet().to(device)  # use GPU
