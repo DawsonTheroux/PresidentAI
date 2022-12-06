@@ -160,7 +160,7 @@ class Game:
                 scoreInfo[player.id]["score"] = 3 - i
             else:
                 scoreInfo[player.id]["score"] = 2 - i
-            scoreInfo[player.id]["numPlays"] = 1
+            scoreInfo[player.id]["numPlays"] = 0
 
         aiPlayerKeys = []
         for key in scoreInfo.keys():
@@ -168,8 +168,7 @@ class Game:
                 aiPlayerKeys.append(key)
 
         for logObject in self.logArray:
-            if len(logObject["cardsPlayed"]) > 0:
-                scoreInfo[logObject["id"]]["numPlays"] += 1
+            scoreInfo[logObject["id"]]["numPlays"] += 1
 
         allCardsPlayed = []
         allCardsEncoded = -np.ones(54)
@@ -177,10 +176,13 @@ class Game:
         for logObject in self.logArray:
             # Encode possible Plays 
             #playerScore = scoreInfo[logObject["id"]]["score"] / scoreInfo[logObject["id"]]["numPlays"]
+            scoreInfo[logObject["id"]]["numPlays"] -= 1
             if len(logObject["possiblePlays"]) == 0:
                 continue
             
-            playerScore = scoreInfo[logObject["id"]]["score"]
+
+            playerScore = scoreInfo[logObject["id"]]["numPlays"]
+            #print(f'PlayerScore: {playerScore}')
             #print(f"({logObject['id']}) Num Plays Left: {scoreInfo[logObject['id']]['numPlays']}")
             #if len(logObject["cardsPlayed"]) > 0:
                 #scoreInfo[logObject["id"]]["numPlays"] -= 1
@@ -233,7 +235,7 @@ class Game:
                         break
             if len(nonPowerCardsInHand) == 0 and len(logObject["cardsInHand"]) > len(logObject["cardsPlayed"]):
                 #scoreInfo[logObject["id"]]["score"] = -10
-                playerScore = -4
+                playerScore = 20
                 autoAssThisTurn = True
 
                 
@@ -378,6 +380,7 @@ if __name__ == "__main__":
 
     filename = f"testfile.csv"
     game_obj.outputLogToFile(filename)
+    '''
     gameMatrix = np.loadtxt(filename, delimiter = ",")
     gameMatrix = gameMatrix.reshape((-1, 224))
     for i in range(len(gameMatrix)):
@@ -391,6 +394,7 @@ if __name__ == "__main__":
         print(f"cardsDiscarded: {cardsPlayed}")
         print(f"playChosen: {playChosen}")
         print("===========================================")
+    '''
     '''
     print("Decoded Values:")
     print(f"PlayerID: {playerID}")

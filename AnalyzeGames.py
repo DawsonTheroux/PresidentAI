@@ -52,14 +52,14 @@ def analyzePlay(play):
     playChosenIndex = np.argmax(playChosen)
     if playChosen[playChosenIndex] == 0:
         playChosenIndex = np.argmin(playChosen)
-    positions = ["Ass", "Vice Ass", "Neutral2", "Neutral1", "Vice President", "President"]
-    position = -1
-    if playChosen[playChosenIndex] == -10:
-        position = "Auto Ass"
-    elif playChosen[playChosenIndex] > 0:
-        position = positions[int(playChosen[playChosenIndex] + 2)]
-    else:
-        position = positions[int(playChosen[playChosenIndex] + 3)]
+    #positions = ["Ass", "Vice Ass", "Neutral2", "Neutral1", "Vice President", "President"]
+    #position = -1
+    #if playChosen[playChosenIndex] == -10:
+    #    position = "Auto Ass"
+    #elif playChosen[playChosenIndex] > 0:
+    #    position = positions[int(playChosen[playChosenIndex] + 2)]
+    #else:
+    #    position = positions[int(playChosen[playChosenIndex] + 3)]
     #position = positions[(int)(playChosen[playChosenIndex] - 1)]
     chosenPlay = decodePlay(playChosenIndex)
     outputString = ""
@@ -233,9 +233,17 @@ def generateGamesWithMultiThreading(model, numWorkers, outputPath, outputToFile)
     return fullDataset
 
 if __name__ == "__main__":
+    '''
     generateGamesWithMultiThreading("random", 10, "non", False)
+    '''
 
-    ''' Compare generations to random
+    
+    game_obj = Game()
+
+    filename = f"testfile.csv"
+    game_obj.outputLogToFile(filename)
+    analyzeOutput(filename)
+    '''
     for i in range(15):
         print(f"Evaluating Gen {i}")
         evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model2008\\model2008_gen{i}.pt"

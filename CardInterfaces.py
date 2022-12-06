@@ -245,7 +245,7 @@ class AIModelInterface:
         data = np.hstack((encodedPlayers, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
         with torch.no_grad():
             #print(f"data.shape {data.shape}")
-            if device == "cuda":
+            if device == "cpu":
                 data = torch.from_numpy(data).float().cpu()
             else:
                 data = torch.from_numpy(data).float().cuda()
@@ -260,7 +260,7 @@ class AIModelInterface:
 
 
         play = []
-        for i, predInd in enumerate(topPredsArr):
+        for i, predInd in enumerate(reversed(topPredsArr)):
             candidate = decodePlay(predInd)
             if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
                 break
