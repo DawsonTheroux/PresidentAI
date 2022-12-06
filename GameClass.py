@@ -60,10 +60,10 @@ class Game:
     def assignPlayers(self, gameType=0, model1=None, model2=None):
 
         if gameType == 1: # All players a President model
-            for i in range(6):
+            for i in range(3):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
-            #for i in range(3):
-                #self.players.append(PlayerModule.Player(1, i)) 
+            for i in range(3):
+                self.players.append(PlayerModule.Player(1, i)) 
         elif gameType == 2: # All players are model.
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
