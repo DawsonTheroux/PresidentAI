@@ -162,8 +162,12 @@ class RandomCardInterface:
         #print(f" The cards on Table {cardOnTable}")
         #print(f"Player({player.id}) Please choose a card: {np.sort(player.hand)}")
         if len(possiblePlays) > 0:
+            possiblePlaysInHand = getPossiblePlays(player.hand, [])
+            #randomPlayer = random.random()
+            #if randomPlayer > 0.5:
+                #print("True Random Player playing")
             if len(cardOnTable) > 0:
-                randomPlay = np.random.randint(len(possiblePlays) +1)
+                randomPlay = np.random.randint(len(possiblePlays) + (len(possiblePlaysInHand)))
             else:
                 randomPlay = np.random.randint(len(possiblePlays))
             #print(f"Random Play chosen: {randomPlay} - len(possiblePlays): {len(possiblePlays)}")
@@ -172,7 +176,36 @@ class RandomCardInterface:
             else:
                 play = possiblePlays[randomPlay]
                 removeCardsFromHand(play, player)
+            '''
+            else:
+                print("Small Strategy Player playing")
+                foundNonPowerCard = False
+                for play in possiblePlay:
+                    if 2 not in play and 3 not in play and 14 not in play:
+                        foundNonPowerCard = True
+                        break
+            '''
+                
+                
 
+
+            '''
+            # If the hand has only power cards after the play, then set the score to -10.
+            nonPowerCardsInHand = []
+            for card in player.hand:    
+                if card != 2 and card != 3 and card != 14:
+                    nonPowerCardsInHand.append(card)
+            onlyPowerCardsInHand = len(nonPowerCardsInHand) == 0 # If there are only power cards in the users hand
+            for card in player.hand:
+                for nonPowerCard in nonPowerCardsInHand:
+                    if card == nonPowerCard:
+                        nonPowerCardsInHand.remove(nonPowerCard)
+                        break
+            if len(nonPowerCardsInHand) == 0 and len(logObject["cardsInHand"]) > len(logObject["cardsPlayed"]):
+                #scoreInfo[logObject["id"]]["score"] = -10
+                playerScore = -4
+                autoAssThisTurn = True
+            '''
             # Pick 1 of the possible plays
 
         # Get all available options

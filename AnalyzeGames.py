@@ -124,75 +124,75 @@ def calculateFitness(evalModel, competatorModel, numberOfGames = 500):
         #print(f"ResultsArray[0].id: {resultsArr[0].id}")
         if resultsArr[0].id in evalModelIds:
             if resultsArr[0].id in autoAsses:
-                fitness -= 3
+                fitness -= 1
             else:
-                fitness += 3
+                fitness += 1
             evalModelPlacements["President"] += 1
         else:
             if resultsArr[0].id in autoAsses:
-                competatorFitness -= 3
+                competatorFitness -= 1
             else:
-                competatorFitness += 3
+                competatorFitness += 1
 
         if resultsArr[1].id in evalModelIds:
             if resultsArr[1].id in autoAsses:
-                fitness -= 3
+                fitness -= 1
             else:
-                fitness += 2
+                fitness += 1
             evalModelPlacements["VP"] += 1
         else:
             if resultsArr[1].id in autoAsses:
-                competatorFitness -= 3
+                competatorFitness -= 1
             else:
-                competatorFitness += 2
+                competatorFitness += 1
         
         if resultsArr[2].id in evalModelIds:
             if resultsArr[2].id in autoAsses:
-                fitness -= 3
+                fitness -= 1
             else:
                 fitness += 1
             evalModelPlacements["Neutral1"] += 1
         else:
             if resultsArr[2].id in autoAsses:
-                competatorFitness -= 3
+                competatorFitness -= 1
             else:
                 competatorFitness += 1
 
         if resultsArr[3].id in evalModelIds:
             if resultsArr[3].id in autoAsses:
-                fitness -= 3
+                fitness -= 1
             else:
                 fitness -= 1
             evalModelPlacements["Neutral2"] += 1
         else:
             if resultsArr[3].id in autoAsses:
-                competatorFitness -= 3
+                competatorFitness -= 1
             else:
                 competatorFitness -= 1
 
         if resultsArr[4].id in evalModelIds:
             if resultsArr[4].id in autoAsses:
-                fitness -= 3
+                fitness -= 1
             else:
-                fitness -= 2
+                fitness -= 1
             evalModelPlacements["Vice Ass"] += 1
         else:
             if resultsArr[4].id in autoAsses:
-                competatorFitness -= 3
+                competatorFitness -= 1
             else:
-                competatorFitness -= 2
+                competatorFitness -= 1
 
         if resultsArr[5].id in evalModelIds:
             if resultsArr[5].id in autoAsses:
-                fitness -= 3
+                fitness -= 1
             else:
-                fitness -= 3 
+                fitness -= 1
             evalModelPlacements["Ass"] += 1
         else:
             if resultsArr[5].id in autoAsses:
-                competatorFitness -= 3
+                competatorFitness -= 1
             else:
-                competatorFitness -= 3
+                competatorFitness -= 1
         
     for position in evalModelPlacements.keys():
         print(f"{position}: {evalModelPlacements[position]}")
@@ -286,7 +286,19 @@ def generateGamesWithMultiThreading(model, numWorkers, outputPath, outputToFile)
     return fullDataset
 
 if __name__ == "__main__":
+    outputPath = "testfile.csv"
+    game = Game()
+    outputData1 = game.getTrainingData
+    game = Game()
+    outputData2 = game.getTrainingData
+    outputData = [outputData1, outputData2]
+    ouptutData.tofile(outputPath, sep=",")
+    analyzeOutput(outputPath)
+    
+
+    '''
     generateGamesWithMultiThreading("random", 10, "non", False)
+    '''
 
     ''' Compare generations to random
     for i in range(15):
