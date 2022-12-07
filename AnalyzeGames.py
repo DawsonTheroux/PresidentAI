@@ -290,15 +290,20 @@ if __name__ == "__main__":
     outputPath = "testfile.csv"
     model = PresidentNet()
     model.load_state_dict(torch.load("Models\\autoassmodel.pt", map_location=torch.device('cpu')))
-    game = Game(1, model)
+    game = Game(4, model)
     outputData1 = game.getTrainingData()
+    standings, autoAss = game.getResults()
+    placements = ["President", "Vice President", "Neutral", "Neutral", "Vice Ass", "Ass"]
+    for i, player in enumerate(standings):
+        print(f"{placements[i]}: {player.id}")
     
+    '''
     game = Game(1, model)
     outputData2 = game.getTrainingData()
     outputData = np.vstack((outputData1, outputData2))
     outputData.tofile(outputPath, sep=",")
     analyzeOutput(outputPath)
-    
+    '''
 
     '''
     generateGamesWithMultiThreading("random", 10, "non", False)

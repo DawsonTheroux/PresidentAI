@@ -81,7 +81,7 @@ class Game:
         elif gameType == 4:
             self.players.append(PlayerModule.Player(0, 42)) # Right now this is generating all CMD line players
             for i in range(5): #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players else:
-                    self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+                    self.players.append(PlayerModule.Player(2, i, model1, self)) # Right now this is generating all CMD line players
         elif gameType == 5: #Evaluate Model
             for i in range(3):
                 self.players.append(PlayerModule.Player(2,i, model1, self))

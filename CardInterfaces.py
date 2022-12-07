@@ -9,10 +9,10 @@ class CommandLineInterface:
     def promptCard(self, player, cardsOnTable):
         cardNotChosen = True
         tempHand = player.hand.copy()
-        print(getPossiblePlays(player.hand, cardsOnTable))
+        print(f"The cards on Table {cardsOnTable}")
+        print(f"  Your Possible Plays: {getPossiblePlays(player.hand, cardsOnTable)}")
         while cardNotChosen:
-            print(f" The cards on Table {cardsOnTable}")
-            userInput = input(f"Player({player.id}) Please choose a card: {np.sort(player.hand)}: ").split(',')
+            userInput = input(f"  Player({player.id}) Please choose a card: {np.sort(player.hand)}: ").split(',')
 
             cardsToPlay = []
             for card in userInput:
@@ -30,6 +30,7 @@ class CommandLineInterface:
             #print(f"checkCardsInHand(cardToPlay,player.hand: {checkCardsInHand(cardsToPlay, player.hand)}")
             #print(f"isValidCard(cardsToPlay, player.hand: {isValidCard(cardsToPlay, cardsOnTable)}")
             if checkCardsInHand(cardsToPlay, player.hand) and  isValidCard(cardsToPlay, cardsOnTable):
+                print("-------------")
                 # Remove the cards from the players hand and return
                 removeCardsFromHand(cardsToPlay, player)
                 cardNoChosen = False
@@ -245,6 +246,10 @@ class AIModelInterface:
         device = "cpu"
         #print(f"({player.id}): Cards On Table: {cardsOnTable}")
         possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
+        print(f"Player({player.id})")
+        print(f"  The cards on Table {cardsOnTable}")
+        print(f"  Possible Plays: {getPossiblePlays(player.hand, cardsOnTable)}")
+        print(f"  Player's hand: {np.sort(player.hand)}")
         #print(f"({player.id}): possiblePlays: {possiblePlays}")
         #print(f"({player.id}): hand: {player.hand}")
         #print(f"Cards On Table: {cardsOnTable}")
@@ -252,6 +257,9 @@ class AIModelInterface:
         possiblePlaysEncoded = encodePlays(possiblePlays,1)
         #print(f"Possible plays encoded {possiblePlaysEncoded}")
         if len(possiblePlays) == 0:
+            print(f"  Play Selected: {[]}")
+            input()
+            print("--------------------------")
             return []
         #print(f"size of possiblePlays {possiblePlaysEncoded.shape}")
         cardsOnTableEncoded = encodePlays([cardsOnTable], 1)
@@ -350,7 +358,9 @@ class AIModelInterface:
                     play = candidate
                     removeCardsFromHand(play,player)
                     break
-        
+        print(f"  Play Selected: {play}")
+        input()
+        print("--------------------------")
         #print(f"({player.id})Candidate: {candidate} - {predInd}")
         #print(f"({player.id})possiblePlaysEncoded: {possiblePlaysEncoded} - {predInd}")
         #print(f'({player.id})Playing: {play}') 
