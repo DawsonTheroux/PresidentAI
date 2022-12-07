@@ -242,7 +242,7 @@ class AIModelInterface:
 
     def promptCard(self, player, cardsOnTable):
         #print(f"Prompting AI player({player.id}) for a card")
-        device = "cuda"
+        device = "cpu"
         #print(f"({player.id}): Cards On Table: {cardsOnTable}")
         possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
         #print(f"({player.id}): possiblePlays: {possiblePlays}")
@@ -267,14 +267,12 @@ class AIModelInterface:
         # Data structuure: possiblePlayesEncoded(54), cardsOnTable, All cards enccoded(54)
         topPredsArr = []
         #data = np.hstack((encodedPlayers, possiblePlaysEncoded, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
-        '''
-        print(f"EncodedPlayersIn: {encodedPlayers}")
-        print(f"Hand: {player.hand}")
-        print(f"encodedHand: {encodedHand}")
-        print(f"cardsOnTable: {cardsOnTable}")
-        print(f"encodedCardsOnTable: {cardsOnTableEncoded}")
-        print(f"discardedCards: {self.game.encodedPlayedCards}")
-        '''
+        #print(f"EncodedPlayersIn: {encodedPlayers}")
+        #print(f"Hand: {player.hand}")
+        #print(f"encodedHand: {encodedHand}")
+        #print(f"cardsOnTable: {cardsOnTable}")
+        #print(f"encodedCardsOnTable: {cardsOnTableEncoded}")
+        #print(f"discardedCards: {self.game.encodedPlayedCards}")
         data = np.hstack((encodedPlayers, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
         with torch.no_grad():
             #print(f"data.shape {data.shape}")
@@ -291,16 +289,67 @@ class AIModelInterface:
                 #topPredsArr = torch.topk(output, 3).indices.tolist()
 
 
-
         play = []
-        for i, predInd in enumerate(topPredsArr):
-            candidate = decodePlay(predInd)
-            if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
-                break
-            elif possiblePlaysEncoded[predInd-1] != -1:
-                play = candidate
+        #print(f"Redictions:{output}")
+
+        if self.game.isTrainingDataGerneration:
+            # 70% of the time pick the top play
+            # 15% of the time pick the second best
+            # 15% of the itme pick the third best
+            randNum = np.random.rand()
+            playNumber = 0
+            if randNum >= 0.70 and randNum <= 0.84:
+                #print("Picking the second best play")
+                playNumber = 1
+            elif randNum >= 0.85:
+                #print("picking the third best play")
+                playNumber = 2
+            
+            # Get the best play
+            # Determine the second best
+            # Determine the third best.
+            numTries = 0
+            numTries -= playNumber
+            for i, predInd in enumerate(topPredsArr):
+                numTries += 1
+                candidate = decodePlay(predInd)
+                if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
+                    if playNumber == 0:
+                        break
+                    else:
+                        #print("Skipping Pass")
+                        playNumber -= 1
+                elif possiblePlaysEncoded[predInd-1] != -1:
+                    if playNumber == 0:
+                        play = candidate
+                        break
+                    else:
+                        #print(f"Skipping {candidate}")
+                        playNumber -= 1
+            #print(f"NumTries: {numTries}")  
+            #print(f"Picked {play}")
+            # If there is nothing on the table and it tries to pass, pick the best option.
+            if len(cardsOnTable) == 0 and play == []:
+                for i, predInd in enumerate(topPredsArr):
+                    candidate = decodePlay(predInd)
+                    if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
+                        break
+                    elif possiblePlaysEncoded[predInd-1] != -1:
+                        play = candidate
+                        break
+                    
+            if play != []: 
                 removeCardsFromHand(play,player)
-                break
+        
+        else:   
+            for i, predInd in enumerate(topPredsArr):
+                candidate = decodePlay(predInd)
+                if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
+                    break
+                elif possiblePlaysEncoded[predInd-1] != -1:
+                    play = candidate
+                    removeCardsFromHand(play,player)
+                    break
         
         #print(f"({player.id})Candidate: {candidate} - {predInd}")
         #print(f"({player.id})possiblePlaysEncoded: {possiblePlaysEncoded} - {predInd}")

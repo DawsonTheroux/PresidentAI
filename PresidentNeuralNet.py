@@ -14,17 +14,20 @@ class PresidentNet(nn.Module):
 
         self.layer1 = nn.Sequential(
             nn.Linear(168,1024),
-            nn.ELU()
+            nn.ReLU()
+            #nn.ELU()
         )
         self.layer2 = nn.Sequential(
             #nn.Dropout(0.5),
             nn.Linear(1024, 1024), 
-            nn.ELU()
+            nn.ReLU()
+            #nn.ELU()
         )
         self.layer3 = nn.Sequential(
             #nn.Dropout(0.5),
             nn.Linear(1024,512),
-            nn.ELU()
+            nn.ReLU()
+            #nn.ELU()
         )
         self.layer4 = nn.Sequential(
             #nn.Dropout(0.5),
@@ -33,7 +36,7 @@ class PresidentNet(nn.Module):
             
         )
         self.layer5 = nn.Sequential(
-            nn.Linear(256,55)
+            nn.Linear(256,55),
         )
        
 

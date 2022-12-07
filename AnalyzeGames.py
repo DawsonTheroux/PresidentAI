@@ -286,13 +286,17 @@ def generateGamesWithMultiThreading(model, numWorkers, outputPath, outputToFile)
     return fullDataset
 
 if __name__ == "__main__":
+
     outputPath = "testfile.csv"
-    game = Game()
-    outputData1 = game.getTrainingData
-    game = Game()
-    outputData2 = game.getTrainingData
-    outputData = [outputData1, outputData2]
-    ouptutData.tofile(outputPath, sep=",")
+    model = PresidentNet()
+    model.load_state_dict(torch.load("Models\\autoassmodel.pt", map_location=torch.device('cpu')))
+    game = Game(1, model)
+    outputData1 = game.getTrainingData()
+    
+    game = Game(1, model)
+    outputData2 = game.getTrainingData()
+    outputData = np.vstack((outputData1, outputData2))
+    outputData.tofile(outputPath, sep=",")
     analyzeOutput(outputPath)
     
 

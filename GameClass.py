@@ -23,6 +23,7 @@ class Game:
         self.passedPlayers = []
         self.autoAss = []
         self.logArray = []
+        self.isTrainingDataGerneration = False
         self.encodedPlayedCards = -np.ones(54)
         self.assignPlayers(gametype, model1, model2)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
@@ -60,10 +61,11 @@ class Game:
     def assignPlayers(self, gameType=0, model1=None, model2=None):
 
         if gameType == 1: # All players a President model
-            for i in range(3):
+            #self.isTrainingDataGerneration = True
+            for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
-            for i in range(3):
-                self.players.append(PlayerModule.Player(1, i)) 
+            #for i in range(3):
+                #self.players.append(PlayerModule.Player(1, i)) 
         elif gameType == 2: # All players are model.
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
@@ -77,7 +79,7 @@ class Game:
             for i in range(6): #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players else:
                     self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
         elif gameType == 4:
-            self.players.append(PlayerModule.Player(0, 42.1)) # Right now this is generating all CMD line players
+            self.players.append(PlayerModule.Player(0, 42)) # Right now this is generating all CMD line players
             for i in range(5): #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players else:
                     self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
         elif gameType == 5: #Evaluate Model
@@ -223,28 +225,53 @@ class Game:
             
             
             # If the hand has only power cards after the play, then set the score to -10.
+
+            validPlay = True
+            # Find all the non-powercards in the hand.
+            #print(f"Hand: {logObject['cardsInHand']}")
             nonPowerCardsInHand = []
             for card in logObject["cardsInHand"]:
                 if card != 2 and card != 3 and card != 14:
                     nonPowerCardsInHand.append(card)
+            #print(f"None Powercards in hand: {nonPowerCardsInHand}")
+
+
             onlyPowerCardsInHand = len(nonPowerCardsInHand) == 0 # If there are only power cards in the users hand
+            #print(f"Only powerCardsInHand? : {onlyPowerCardsInHand}")
+
+            numberOfNonPowerCardsInHandBefore = len(nonPowerCardsInHand)
+            # Remove all the cards from the play from nonPowercards in hand.    
             for card in logObject["cardsPlayed"]:
                 for nonPowerCard in nonPowerCardsInHand:
                     if card == nonPowerCard:
                         nonPowerCardsInHand.remove(nonPowerCard)
                         break
-            if len(nonPowerCardsInHand) == 0 and len(logObject["cardsInHand"]) > len(logObject["cardsPlayed"]):
+                
+            numberOfNonPowerCardsInHandAfter = len(nonPowerCardsInHand)
+            # If after the play nonPowercards in hand 
+            # THe play must not result in an empty hand
+            if numberOfNonPowerCardsInHandBefore != 0 and numberOfNonPowerCardsInHandAfter == 0 and len(logObject["cardsPlayed"]) != len(logObject["cardsInHand"]):
                 #scoreInfo[logObject["id"]]["score"] = -10
                 playerScore = -4
                 autoAssThisTurn = True
+            
+            # THe play must not result in an empty hand
+            if numberOfNonPowerCardsInHandBefore == 0:
+                validPlay = False
+            
+            
 
-                
+            #print(f"Play: {logObject['cardsPlayed']}")
+            #print(f"validPlay: {validPlay}") 
+            #print(f"autoAssThisTurn: {autoAssThisTurn}") 
+            #print(f"Adding to data: {validPlay or autoAssThisTurn}")
+            #print("----")
             cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore, 0)
             
             # Only add Row if:
             # - If there is a mix of AI and Random, only add AI ids.
-            # - If the player got autoAss this turn add it.
-            if not (len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys) and not autoAssThisTurn and not onlyPowerCardsInHand: 
+            # - If the player got autoAss this turn add it. or it was a regular play
+            if not (len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys) and (validPlay or autoAssThisTurn):
                 outputRow = np.hstack((logObject["id"], logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
                 if len(outputArray) == 0:
                     outputArray = outputRow
