@@ -201,13 +201,13 @@ def calculateFitness(evalModel, competatorModel, numberOfGames = 500):
     #finalFitness = fitness - competatorFitness
     return fitness, competatorFitness
 
-def modelFitnessFromFiles(evalModelPath, competatorModelPath, numberOfGames=500):
+def modelFitnessFromFiles(evalModelPath, competatorModelPath, numberOfGames=500 ):
     evalModel = PresidentNet()
     competatorModel = PresidentNet()
-    evalModel.load_state_dict(torch.load(evalModelPath))
+    evalModel.load_state_dict(torch.load(evalModelPath, map_location=torch.device('cpu')))
 
     if competatorModelPath != "random":
-        competatorModel.load_state_dict(torch.load(competatorModelPath))
+        competatorModel.load_state_dict(torch.load(competatorModelPath, map_location=torch.device('cpu')))
     else:
         competatorModel = "random"
     return calculateFitness(evalModel, competatorModel, numberOfGames)
@@ -287,6 +287,14 @@ def generateGamesWithMultiThreading(model, numWorkers, outputPath, outputToFile)
 
 if __name__ == "__main__":
 
+    evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model4000\\model4000_gen2_0.pt"
+    competatorPath= f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model4001\\model4001_gen2_7.pt"
+    numberOfGamesVsModel = 500
+    for i in range(10):
+        fitness, competatorFitness = modelFitnessFromFiles(evalModelPath, competatorPath, numberOfGamesVsModel)
+        print(f"Fitness4000 {i}: {fitness} -- Competator Fitness40001: {competatorFitness}")
+
+    '''
     outputPath = "testfile.csv"
     model = PresidentNet()
     model.load_state_dict(torch.load("Models\\autoassmodel.pt", map_location=torch.device('cpu')))
@@ -298,6 +306,7 @@ if __name__ == "__main__":
     outputData = np.vstack((outputData1, outputData2))
     outputData.tofile(outputPath, sep=",")
     analyzeOutput(outputPath)
+    '''
     
 
     '''
