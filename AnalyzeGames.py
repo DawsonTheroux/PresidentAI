@@ -289,7 +289,7 @@ if __name__ == "__main__":
 
     outputPath = "testfile.csv"
     model = PresidentNet()
-    model.load_state_dict(torch.load("Models\\autoassmodel.pt", map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load("Models\\model5000_gen13_7.pt", map_location=torch.device('cpu')))
     game = Game(4, model)
     outputData1 = game.getTrainingData()
     standings, autoAss = game.getResults()
