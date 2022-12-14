@@ -5,6 +5,8 @@ import os
 import copy
 from CardInterfaces import getPossiblePlays
 from CardInterfaces import encodePlays
+from PresidentNeuralNet import PresidentNet
+import torch
 
 
 # Disabled Auto Ass
@@ -24,6 +26,7 @@ class Game:
         self.autoAss = []
         self.logArray = []
         self.isTrainingDataGerneration = False
+        self.isWebsiteGame = False
         self.encodedPlayedCards = -np.ones(54)
         self.assignPlayers(gametype, model1, model2)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
@@ -86,6 +89,12 @@ class Game:
             for i in range(3):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
                 self.players.append(PlayerModule.Player(2,i + 0.1, model2, self))
+        elif gameType == 6:
+            self.isWebsiteGame = True
+            self.players.append(PlayerModule.Player(0, 42)) # Right now this is generating all CMD line players
+            for i in range(5):
+                self.players.append(PlayerModule.Player(2,i, model1, self))
+            
         
 
     def getResults(self):
@@ -393,42 +402,10 @@ class Game:
 
 
 if __name__ == "__main__":
-    '''
-    for i in range(1000):
-        if i % 100 == 0:
-            print(f"Game: {i}")
-        game_obj = Game()
-        filename = f"GameLogs/gameFile{i}.csv"
-        game_obj.outputLogToFile(filename)
-        dataTable = game_obj.getTrainingData()
-    '''
+    model = PresidentNet()
+    model.load_state_dict(torch.load("Models\\model8000_gen7_17.pt", map_location=torch.device('cpu')))
+    game_obj = Game(6, model)
 
-    game_obj = Game()
-
-    filename = f"testfile.csv"
-    game_obj.outputLogToFile(filename)
-    gameMatrix = np.loadtxt(filename, delimiter = ",")
-    gameMatrix = gameMatrix.reshape((-1, 224))
-    for i in range(len(gameMatrix)):
-        play = gameMatrix[i]
-        playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
-        print("Encoded Values:")
-        print(f"PlayerID: {playerID}")
-        print(f"playersIn: {playersIn}")
-        print(f"cardsInHand: {cardsInHand}")
-        print(f"cardsOnTable: {cardsOnTable}")
-        print(f"cardsDiscarded: {cardsPlayed}")
-        print(f"playChosen: {playChosen}")
-        print("===========================================")
-    '''
-    print("Decoded Values:")
-    print(f"PlayerID: {playerID}")
-    print(f"playersIn: {playersIn}")
-    print(f"cardsInHand: {cardsInHand}")
-    print(f"cardsOnTable: {cardsOnTable}")
-    print(f"cardsPlayed: {cardsPlayed}")
-    print(f"playChosen: {playChosen}")
-    '''
     
 
 
