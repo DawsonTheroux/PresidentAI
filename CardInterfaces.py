@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 import copy
+import sys
+from flask_socketio import SocketIO, send, emit
 #from GameClass import encodePlays
 
 
@@ -9,14 +11,41 @@ class CommandLineInterface:
     def promptCard(self, player, cardsOnTable):
         cardNotChosen = True
         tempHand = player.hand.copy()
-        printObject = {}
-        printObject["playerID"] = player.id
-        printObject["cardsOnTable"] = cardsOnTable
-        printObject["playerHand"] = np.sort(player.hand)
-        print(printObject)
         while cardNotChosen:
             #userInput = input(f"  Player({player.id}) Please choose a card: {np.sort(player.hand)}: ").split(',')
-            userInput = input().split(',')
+            print(f" The cards on Table {cardsOnTable}")
+            userInput = input(f"Player({player.id}) Please choose a card: {np.sort(player.hand)}: ").split(',')
+
+            cardsToPlay = []
+            for card in userInput:
+                try:
+                    cardInt = (int)(card)
+                except:
+                    break
+                cardsToPlay.append(cardInt)
+            
+            try:
+                if cardsToPlay[0] == 0: cardsToPlay = []
+            except:
+                continue
+
+            #print(f"checkCardsInHand(cardToPlay,player.hand: {checkCardsInHand(cardsToPlay, player.hand)}")
+            #print(f"isValidCard(cardsToPlay, player.hand: {isValidCard(cardsToPlay, cardsOnTable)}")
+            if checkCardsInHand(cardsToPlay, player.hand) and  isValidCard(cardsToPlay, cardsOnTable):
+                # Remove the cards from the players hand and return
+                removeCardsFromHand(cardsToPlay, player)
+                cardNoChosen = False
+                return cardsToPlay
+
+
+class SocketInterface:
+    # Prompts the command line to enter a card.
+    def promptCard(self, player, cardsOnTable):
+        cardNotChosen = True
+        tempHand = player.hand.copy()
+        while cardNotChosen:
+            userInput = input(f"  Player({player.id}) Please choose a card: {np.sort(player.hand)}: ").split(',')
+            #userInput = input().split(',')
 
             cardsToPlay = []
             for card in userInput:
@@ -252,7 +281,7 @@ class AIModelInterface:
         printObject  = {}
         printObject["playerID"] = player.id
         printObject["cardsOnTable"] = cardsOnTable
-        printObject["playerHand"] = np.sort(player.hand)
+        printObject["playerHand"] = np.sort(player.hand).tolist()
 
         #print(f"Player({player.id})")
         #print(f"  The cards on Table {cardsOnTable}")
@@ -267,6 +296,7 @@ class AIModelInterface:
         if len(possiblePlays) == 0:
             printObject["playSelected"] = []
             print(printObject)
+            sys.stdout.flush()
             #print(f"  Play Selected: {[]}")
             #input()
             #print("--------------------------")
@@ -373,6 +403,7 @@ class AIModelInterface:
         #print("--------------------------")
         printObject["playSelected"] = play
         print(printObject)
+        sys.stdout.flush()
         #print(f"({player.id})Candidate: {candidate} - {predInd}")
         #print(f"({player.id})possiblePlaysEncoded: {possiblePlaysEncoded} - {predInd}")
         #print(f'({player.id})Playing: {play}') 

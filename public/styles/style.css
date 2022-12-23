@@ -1,0 +1,294 @@
+/* Dark Green div Box */
+div2{
+	color: #ccccb3;
+	background-color: #0b1f19;
+	display: block;
+	margin-left: 15%;
+	margin-right: 15%;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	padding-left: 30px;
+	padding-right: 30px;
+	padding-top: 10px;
+	padding-bottom: 30px;
+	border-radius: 10px;
+}
+
+h2{
+	color: #B2D2A4;
+	margin: 0px;
+	margin-right: 10px;
+	padding-bottom: 10px;
+	text-decoration: underline;
+	font-size: 30px;
+}
+
+p2{
+	padding: 60px;
+	font-size: 25px;
+	object-fit: contain;
+	display: block;		
+}
+
+p3{
+	display: block;
+	font-size: 20px;
+	margin: 20px;
+}
+
+/* Technologies/Languages Buttons */
+.button2{
+	display: inline-block;
+	margin-left: 20px;
+	padding: 5px 12px;
+	transition-duration: 0.4s;
+	color: rgb(11, 31, 25);
+	cursor:pointer;
+	font-size: 15px;
+	text-decoration: none;
+	background-color: #B2D2A4;
+	border-radius: 5px;
+}
+.button2:hover{
+	background-color: rgb(11, 31, 25);
+	border-radious: 15px;
+	color: #B2D2A4;
+	cursor:pointer;
+	text-decoration: none;
+}
+
+/* dawsontheroux.ca button */
+.button3{
+	color: #B2D2A4; 
+	font-size:60px; 
+	font-weight: bold; 
+	text-aling: center; 
+	margin: 0px; 
+	text-decoration: none;
+}
+
+
+img.profile{
+	width: 200px;
+	float: left;
+	border-radius: 15%;
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-bottom: 2%;
+	margin-top: 2%;
+	display: inline;
+}
+
+img.code{
+	float: none;
+	padding: 5px;
+	align: center;
+}
+.clearfix{
+	overflow: auto;
+}
+
+/*-----------------------------Header styles-------------------------*/
+h1{
+	background-color: rgb(11, 31, 25);
+	font-size:25px;
+	padding-left: 15%;
+	padding-top: 0px;
+	margin: 0px;
+}
+
+div1{
+	background-color: white;
+	height: 119px;
+	margin:0;
+	display: inline-block;
+}
+.button1{
+	display: inline-block;
+	padding: 5px 12px;
+	transition-duration: 0.4s;
+	color: #B2D2A4;
+	cursor:pointer;
+	size: 10px;
+	text-decoration: none;
+	background-color: rgb(11, 31, 25);
+}
+.button1:hover{
+	background-color: #B2D2A4;
+	border-radious: 15px;
+	color: rgb(11, 31, 25);
+	cursor:pointer;
+	text-decoration: none;
+}
+p1{
+	color: #B2D2A4;
+	font-size:60px;
+	font-weight: bold;
+	text-aling: center;
+	margin: 0px;
+}
+
+
+/*----------------------Phone/Small device CSS--------------------*/
+@media only screen and (max-width: 600px) {
+
+/*---------------------Header Properties--------------------------*/
+	div1{
+		background-color: white;
+		height: 119px;
+		margin: 0px;
+		display: inline-block;
+		padding: 0px;
+	}
+	
+	h1{
+		background-color: rgb(11, 31, 25);
+		font-size:25px;
+		padding-left: 5%;
+		padding-right: 5%;
+		padding-top: 0px;
+		margin: 0px;
+	}
+	
+	/* */
+	p1{
+		color: #B2D2A4;
+		font-size:60px;
+		font-weight: bold;
+		text-aling: center;
+		margin: 0px;
+	}
+	
+	/* Header Button (dawsontheroux.ca) */
+	.button3{
+		color: #B2D2A4; 
+		font-size:30px; 
+		font-weight: bold; 
+		text-aling: center; 
+		margin: 0px; 
+		text-decoration: none;
+	}
+	
+	/* Header menu Button */
+	.button1{
+		display: none;
+		padding: 5px 5px;
+		transition-duration: 0.4s;
+		color: #B2D2A4;
+		cursor:pointer;
+		size: 10px;
+		text-decoration: none;
+		background-color: rgb(11, 31, 25);
+	}
+	.button1:hover{
+		background-color: #B2D2A4;
+		border-radious: 15px;
+		color: rgb(11, 31, 25);
+		cursor:pointer;
+		text-decoration: none;
+	}
+/*--------------------------------------------------*/
+	
+	
+	/* Dark Green div Box */
+	div2{
+		color: #ccccb3;
+		background-color: #0b1f19;
+		display: block;
+		margin-left: 2%;
+		margin-right: 2%;
+		margin-bottom: 10px;
+		margin-top: 10px;
+		padding-left: 20px;
+		padding-right: 20px;
+		padding-top: 10px;
+		padding-bottom: 30px;
+		border-radius: 10px;
+	}
+	
+	h2{
+		color: #B2D2A4;
+		margin: 0px;
+		margin-right: 10px;
+		padding-bottom: 10px;
+		text-decoration: underline;
+		font-size: 30px;
+	}
+	
+	p2{
+		padding: 0%;
+		font-size: 25px;
+		object-fit: contain;
+		display: block;		
+		text-align: center;
+	}
+	
+	p3{
+	display: block;
+	font-size: 20px;
+	margin: 0px;
+}
+	
+	img.profile{
+		width: 50%;
+		float: center;
+		border-radius: 15%;
+		margin-left: 25%;
+		margin-right: 25%;
+		margin-bottom: 10%;
+		margin-top: 10%;
+		display: block;
+	}
+	
+	
+	
+	/* Technologies/Languages Buttons */
+	.button2{
+		display: inline-block;
+		margin-left: 20px;
+		padding: 5px 12px;
+		transition-duration: 0.4s;
+		color: rgb(11, 31, 25);
+		cursor:pointer;
+		font-size: 15px;
+		text-decoration: none;
+		background-color: #B2D2A4;
+		border-radius: 5px;
+	}
+	.button2:hover{
+		background-color: rgb(11, 31, 25);
+		border-radious: 15px;
+		color: #B2D2A4;
+		cursor:pointer;
+		text-decoration: none;
+	}
+	
+	/* Technologies/Languages Buttons */
+	.button2{
+		display: inline-block;
+		margin-left: 8px;
+		padding: 2.5px 6px;
+		transition-duration: 0.4s;
+		color: rgb(11, 31, 25);
+		cursor:pointer;
+		font-size: 15px;
+		text-decoration: none;
+		background-color: #B2D2A4;
+		border-radius: 5px;
+	}
+	.button2:hover{
+		background-color: rgb(11, 31, 25);
+		border-radious: 15px;
+		color: #B2D2A4;
+		cursor:pointer;
+		text-decoration: none;
+	}
+	
+	
+
+	
+	
+	
+	
+	
+}

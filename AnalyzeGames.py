@@ -286,7 +286,6 @@ def generateGamesWithMultiThreading(model, numWorkers, outputPath, outputToFile)
     return fullDataset
 
 if __name__ == "__main__":
-
     outputPath = "testfile.csv"
     model = PresidentNet()
     model.load_state_dict(torch.load("Models\\model5000_gen13_7.pt", map_location=torch.device('cpu')))

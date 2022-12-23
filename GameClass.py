@@ -6,7 +6,9 @@ import copy
 from CardInterfaces import getPossiblePlays
 from CardInterfaces import encodePlays
 from PresidentNeuralNet import PresidentNet
+from flask_socketio import SocketIO, send, emit
 import torch
+import sys
 
 
 # Disabled Auto Ass
@@ -16,7 +18,7 @@ import torch
 
 class Game:
 
-    def __init__(self, gametype=0, model1=None, model2=None):
+    def __init__(self, gametype=0, model1=None, model2=None, numHumanPlayers=None):
         self.players = []
         self.cards = []
         self.cardsPlayed = []
@@ -28,7 +30,7 @@ class Game:
         self.isTrainingDataGerneration = False
         self.isWebsiteGame = False
         self.encodedPlayedCards = -np.ones(54)
-        self.assignPlayers(gametype, model1, model2)    # This will set self.players array to Player Objects.
+        self.assignPlayers(gametype, model1, model2, numHumanPlayers)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
         self.gameLoop()
 
@@ -61,7 +63,7 @@ class Game:
         #for player in self.players:
             #print(f"player({player.id}): {player.hand}")
 
-    def assignPlayers(self, gameType=0, model1=None, model2=None):
+    def assignPlayers(self, gameType=0, model1=None, model2=None, numHumanPlayers=None):
 
         if gameType == 1: # All players a President model
             #self.isTrainingDataGerneration = True
@@ -90,10 +92,13 @@ class Game:
                 self.players.append(PlayerModule.Player(2,i, model1, self))
                 self.players.append(PlayerModule.Player(2,i + 0.1, model2, self))
         elif gameType == 6:
+            model1 = PresidentNet()
+            model1.load_state_dict(torch.load("Models\\model8000_gen7_17.pt", map_location=torch.device('cpu')))
             self.isWebsiteGame = True
-            self.players.append(PlayerModule.Player(0, 42)) # Right now this is generating all CMD line players
+            self.players.append(PlayerModule.Player(3, 1)) # Right now this is generating all CMD line players
             for i in range(5):
-                self.players.append(PlayerModule.Player(2,i, model1, self))
+                self.players.append(PlayerModule.Player(2,i + 2, model1, self))
+
             
         
 
@@ -310,6 +315,12 @@ class Game:
         turnIndex = 0
         gameOver = False
         lastPlayedIsFinished = False
+        handObject = {}
+        for player in self.players:
+            handObject[player.id] = np.sort(player.hand).tolist()
+        
+        emit("gameStarted", handObject)
+
         # One loop is one players turn
         while not gameOver:
             isBurn = False
@@ -404,7 +415,7 @@ class Game:
 if __name__ == "__main__":
     model = PresidentNet()
     model.load_state_dict(torch.load("Models\\model8000_gen7_17.pt", map_location=torch.device('cpu')))
-    game_obj = Game(6, model)
+    game_obj = Game(4, model)
 
     
 

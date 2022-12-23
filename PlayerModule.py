@@ -2,7 +2,7 @@ import numpy as np
 import CardInterfaces
 
 class Player:
-    def __init__(self, interfaceType, id, model = None, game = None):
+    def __init__(self, interfaceType, id, model = None, game = None ):
         self.hand = []
         self.cardInterface = None
         self.playedHand = False
@@ -16,6 +16,9 @@ class Player:
         elif interfaceType == 2:
             self.id = id
             self.cardInterface = CardInterfaces.AIModelInterface(game, model)
+        elif interfaceType == 3: # Website socket player
+            self.id = id
+            self.cardInterface = CardInterfaces.SocketInterface()
         else:
             print("That is not a card interface")
 
