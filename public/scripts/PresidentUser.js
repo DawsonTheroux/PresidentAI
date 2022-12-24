@@ -5,6 +5,7 @@ joinedGame = false
 joinedWaitingRoom = false
 playerID = undefined
 hand = []
+cardsOnTable = []
 
 // Once the users name has been inputted, the socket is created
 function joinGame(){
@@ -18,6 +19,7 @@ function joinGame(){
         socket.on("gameJoined", joinWaitingRoom);
         socket.on("gamePending", gamePending);
         socket.on("gameStarted",gameStarted); 
+        socket.on("newPlay", newPlayReceived);
         socket.emit("joinGame", playerName);
     }
 
@@ -105,7 +107,7 @@ function gameStarted(handObject){
 
     // Add the Table paragraph object
     pTable = document.createElement("p");
-    pTable.innerHTML = "TABLE: []";
+    pTable.innerHTML = "TABLE: " + cardsOnTable;
     pTable.id = "pTable"
     gameDiv.appendChild(pTable);
 
@@ -129,6 +131,14 @@ function submitPlay(){
     console.log("Submitting play " + playSelected);
 }
 
+function newPlayReceived(playObject){
+    // "playerID": The playerID of the player who played the new cards
+    // "playerName": The playername of the player who played the cards
+    // "cardsPlayed": The cards played by the player
+    // "cardsOnTable": The cards on table after the play
+    
+    
+}
 
 function displayClientHello(){
     let outputDiv = document.getElementById("gameDiv");

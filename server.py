@@ -1,4 +1,4 @@
-from flask import Flask, Response
+from flask import Flask, Response, request
 from flask import render_template
 from flask_socketio import SocketIO, send, emit
 import os
@@ -68,6 +68,9 @@ def endConnection():
 def joinGame(playerName):  
     socketio.numPlayers += 1
     socketio.lobbyCreated = True
+    socketio.players[socketio.numPlayers] = {}
+    socketio.players[socketio.numPlayers]["name"] = playerName
+    socketio.players[socketio.numPlayers]["socketID"] = request.sid 
     emit("gameJoined", socketio.numPlayers, broadcast = True)
 
 
@@ -88,5 +91,6 @@ if __name__ == "__main__":
     socketio.numPlayers = 0
     socketio.gameActive = False
     socketio.lobbyCreated = False
+    socketio.players = {}
 
     socketio.run(app, port=8081, debug=True)

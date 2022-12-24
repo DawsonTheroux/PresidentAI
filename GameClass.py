@@ -18,7 +18,7 @@ import sys
 
 class Game:
 
-    def __init__(self, gametype=0, model1=None, model2=None, numHumanPlayers=None):
+    def __init__(self, gametype=0, model1=None, model2=None, numHumanPlayers=None, socketio=None):
         self.players = []
         self.cards = []
         self.cardsPlayed = []
@@ -30,7 +30,7 @@ class Game:
         self.isTrainingDataGerneration = False
         self.isWebsiteGame = False
         self.encodedPlayedCards = -np.ones(54)
-        self.assignPlayers(gametype, model1, model2, numHumanPlayers)    # This will set self.players array to Player Objects.
+        self.assignPlayers(gametype, model1, model2, numHumanPlayers, socketio)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
         self.gameLoop()
 
@@ -63,7 +63,7 @@ class Game:
         #for player in self.players:
             #print(f"player({player.id}): {player.hand}")
 
-    def assignPlayers(self, gameType=0, model1=None, model2=None, numHumanPlayers=None):
+    def assignPlayers(self, gameType=0, model1=None, model2=None, numHumanPlayers=None, socketio=None):
 
         if gameType == 1: # All players a President model
             #self.isTrainingDataGerneration = True
@@ -95,6 +95,7 @@ class Game:
             model1 = PresidentNet()
             model1.load_state_dict(torch.load("Models\\model8000_gen7_17.pt", map_location=torch.device('cpu')))
             self.isWebsiteGame = True
+            self.socketio = socketio
             self.players.append(PlayerModule.Player(3, 1)) # Right now this is generating all CMD line players
             for i in range(5):
                 self.players.append(PlayerModule.Player(2,i + 2, model1, self))
@@ -333,6 +334,15 @@ class Game:
             possiblePlays = getPossiblePlays(self.players[turnIndex].hand, self.cardsOnTable)
             cardsToPlay = self.players[turnIndex].promptCard(self.cardsOnTable)
             self.logPlay(cardsToPlay, possiblePlays, self.players[turnIndex].id, self.players[turnIndex].playedHand, handBeforePlay)
+            # newPlay Object:
+            #   - PlayerID of person who played
+            #   - Playername of the person who played
+            #   - Cards played
+            #   - Cards on table after
+            newPlay = {}
+            newPlay["playerID"] = self.players[turnIndex].id
+            newPlay["playerName"] = self.socketio.players[self.players[turnIndex].id]["name"]
+            newPlay["cardsPlayed"] = cardsToPlay
 
             # Add all the cards to the played cards list.
             for card in cardsToPlay: 
@@ -373,6 +383,8 @@ class Game:
                     gameOver = True 
                     break
                 
+            newPlay["cardsOnTable"] = self.cardsOnTable
+            emit("newPlay", newPlay)
             self.playCards(cardsToPlay)
 
             if len(self.players) == 1:
