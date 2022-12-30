@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import copy
 import sys
-from flask_socketio import SocketIO, send, emit
+from flask_socketio import SocketIO, send, emit, call
 #from GameClass import encodePlays
 
 
@@ -40,33 +40,31 @@ class CommandLineInterface:
 
 class SocketInterface:
     # Prompts the command line to enter a card.
+    
     def promptCard(self, player, cardsOnTable):
         cardNotChosen = True
         tempHand = player.hand.copy()
-        while cardNotChosen:
-            userInput = input(f"  Player({player.id}) Please choose a card: {np.sort(player.hand)}: ").split(',')
-            #userInput = input().split(',')
-
-            cardsToPlay = []
-            for card in userInput:
-                try:
-                    cardInt = (int)(card)
-                except:
-                    break
-                cardsToPlay.append(cardInt)
-            
-            try:
-                if cardsToPlay[0] == 0: cardsToPlay = []
-            except:
-                continue
-
-            #print(f"checkCardsInHand(cardToPlay,player.hand: {checkCardsInHand(cardsToPlay, player.hand)}")
-            #print(f"isValidCard(cardsToPlay, player.hand: {isValidCard(cardsToPlay, cardsOnTable)}")
-            if checkCardsInHand(cardsToPlay, player.hand) and  isValidCard(cardsToPlay, cardsOnTable):
-                # Remove the cards from the players hand and return
+        possiblePlays = getPossiblePlays(player.hand,cardsOnTable)
+        playFromSocket = None
+        def receivePlay(possiblePlay):
+            print("*****Play received")
+            splitPlay = possiblePlay.split(",")
+            play = [eval(i) for i in splitPlay]
+            if play in possiblePlays or play[0] == 0:
+                playFromSocket = play
                 removeCardsFromHand(cardsToPlay, player)
                 cardNoChosen = False
                 return cardsToPlay
+        print("Before prompt card call")
+        player.socketio.on("submitPlay", receivePlay)
+        call("promptPlay", player.id)
+        print("After promptcard call")
+        #while playFromSocket == None:
+            #player.socketio.on("submitPlay", receivePlay)
+        
+        # Check if the play is valid
+        # 
+        
 
 def encodePlays(plays, value, oneHot=-1):
     # Singles(14) go from 0-14

@@ -2,10 +2,11 @@ import numpy as np
 import CardInterfaces
 
 class Player:
-    def __init__(self, interfaceType, id, model = None, game = None ):
+    def __init__(self, interfaceType, id, model = None, game = None, socketio=None ):
         self.hand = []
         self.cardInterface = None
         self.playedHand = False
+        self.socketio = socketio
         if interfaceType == 0:
             self.id = id
             self.cardInterface = CardInterfaces.CommandLineInterface()

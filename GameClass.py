@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import os
 import copy
-from CardInterfaces import getPossiblePlays
+from CardInterfaces import getPossiblePlays, removeCardsFromHand
 from CardInterfaces import encodePlays
 from PresidentNeuralNet import PresidentNet
 from flask_socketio import SocketIO, send, emit
@@ -32,7 +32,8 @@ class Game:
         self.encodedPlayedCards = -np.ones(54)
         self.assignPlayers(gametype, model1, model2, numHumanPlayers, socketio)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
-        self.gameLoop()
+        if gametype != 6:
+            self.gameLoop()
 
 
     def dealCards(self):
@@ -96,7 +97,7 @@ class Game:
             model1.load_state_dict(torch.load("Models\\model8000_gen7_17.pt", map_location=torch.device('cpu')))
             self.isWebsiteGame = True
             self.socketio = socketio
-            self.players.append(PlayerModule.Player(3, 1)) # Right now this is generating all CMD line players
+            self.players.append(PlayerModule.Player(3, 1, socketio=socketio)) # Right now this is generating all CMD line players
             for i in range(5):
                 self.players.append(PlayerModule.Player(2,i + 2, model1, self))
 
@@ -320,7 +321,9 @@ class Game:
         for player in self.players:
             handObject[player.id] = np.sort(player.hand).tolist()
         
-        emit("gameStarted", handObject)
+
+        # Removed because it is now in the server side.
+        #emit("gameStarted", handObject)
 
         # One loop is one players turn
         while not gameOver:
@@ -339,10 +342,12 @@ class Game:
             #   - Playername of the person who played
             #   - Cards played
             #   - Cards on table after
-            newPlay = {}
-            newPlay["playerID"] = self.players[turnIndex].id
-            newPlay["playerName"] = self.socketio.players[self.players[turnIndex].id]["name"]
-            newPlay["cardsPlayed"] = cardsToPlay
+
+            # This is removed because socketIO is moved to new functions.
+            #newPlay = {}
+            #newPlay["playerID"] = self.players[turnIndex].id
+            #newPlay["playerName"] = self.socketio.players[self.players[turnIndex].id]["name"]
+            #newPlay["cardsPlayed"] = cardsToPlay
 
             # Add all the cards to the played cards list.
             for card in cardsToPlay: 
@@ -383,8 +388,8 @@ class Game:
                     gameOver = True 
                     break
                 
-            newPlay["cardsOnTable"] = self.cardsOnTable
-            emit("newPlay", newPlay)
+            #newPlay["cardsOnTable"] = self.cardsOnTable
+            #emit("newPlay", newPlay)
             self.playCards(cardsToPlay)
 
             if len(self.players) == 1:
@@ -399,6 +404,144 @@ class Game:
                 turnIndex = turnIndex % len(self.players)
 
         #results = self.printResults() 
+
+    def initSocketGame(self):
+        self.turnIndex = 0
+        self.gameOver = False
+        self.lastPlayedIsFinished = False
+        self.turnId = self.players[0].id
+        initObject = {}
+        for player in self.players:
+            initObject[player.id] = np.sort(player.hand).tolist()
+    
+        firstPlay = {}
+        firstPlay["cardsOnTable"] = []
+        firstPlay["playFromId"] = -1
+        firstPlay["cardsPlayed"] = 0
+        firstPlay["nextId"] = 1
+        
+        return initObject, firstPlay 
+    
+
+    def socketGameStep(self, playObj, isSocket):
+        # Returns stepObj:
+        #   - "cardsOnTable": Cards on table after the play
+        #   - "playFromID": ID of the player who played the play
+        #   - "cardsPlayed": cards played by the player"
+        #   - "NextID"
+        #   - "isBurn"
+        #   - "isFinished"
+        #   - "passed"
+
+        isBurn = False
+        isFinished = False
+        passed = False
+        stepObj = {}
+        stepObj["validPlay"] = True
+            
+        cardOnTablePrior = self.cardsOnTable
+        # prompt the player at player index for a card.
+        handBeforePlay = copy.deepcopy(self.players[self.turnIndex].hand)
+        possiblePlays = getPossiblePlays(self.players[self.turnIndex].hand, self.cardsOnTable)
+
+        # TODO: Change this so that prompt play can take in 
+        #          play selected and determine if it valid.
+        #           This will also allow the prompt play to deal with removing the cards.
+        if not isSocket:
+            cardsToPlay = self.players[self.turnIndex].promptCard(self.cardsOnTable)
+            stepObj["play"] = cardsToPlay
+            stepObj["playFromId"] = self.turnId
+            stepObj["cardsPlayed"] = cardsToPlay
+            stepObj["playFromId"] = self.turnId
+        else:
+            play = playObj["play"].split(",")
+            play = [eval(i) for i in play] # convert the play to int
+            if play in possiblePlays or (len(play) == 1 and play[0] == 0):
+                if play[0] == 0:
+                    play = []
+                cardsToPlay = play
+                removeCardsFromHand(cardsToPlay, self.players[self.turnIndex])
+                stepObj["play"] = cardsToPlay
+                stepObj["playFromId"] = self.turnId
+                stepObj["cardsPlayed"] = cardsToPlay
+            else:
+                stepObj["validPlay"] = False
+                print("Invalid play selected")
+                return stepObj
+        self.logPlay(cardsToPlay, possiblePlays, self.players[self.turnIndex].id, self.players[self.turnIndex].playedHand, handBeforePlay)
+        # newPlay Object:
+        #   - PlayerID of person who played
+        #   - Playername of the person who played
+        #   - Cards played
+        #   - Cards on table after
+
+        # This is removed because socketIO is moved to new functions.
+        #newPlay = {}
+        #newPlay["playerID"] = self.players[turnIndex].id
+        #newPlay["playerName"] = self.socketio.players[self.players[turnIndex].id]["name"]
+        #newPlay["cardsPlayed"] = cardsToPlay
+
+        # Add all the cards to the played cards list.
+        for card in cardsToPlay: 
+            self.cardsPlayed.append(card)
+            
+        if len(cardsToPlay) == 0: # The player passed
+            #print("The player has passed")
+            self.passedPlayers.append(self.players[self.turnIndex])
+            passed = True
+
+            if (self.lastPlayedIsFinished and (len(self.passedPlayers) == len(self.players))) or (not self.lastPlayedIsFinished and  (len(self.passedPlayers) == len(self.players) - 1)):
+                self.lastPlayedIsFinished = False
+                #print("All players have passed")
+                self.cardsOnTable = []
+                self.resetPlayers()
+                self.passedPlayers = []
+        else: 
+            if len(self.cardsOnTable) != 0 and cardsToPlay[0] == self.cardsOnTable[0]:
+                self.lastPlayedIsFinished = False
+                self.passedPlayers = []
+                self.resetPlayers()
+                self.cardsOnTable = []
+                isBurn = True
+            else:
+                self.lastPlayedIsFinished = False
+                self.passedPlayers = []
+                self.cardsOnTable = cardsToPlay
+            
+            if len(self.players[self.turnIndex].hand) == 0:
+                if 2 in cardsToPlay or 3 in cardsToPlay or 14 in cardsToPlay: # The player is autoAss for finishing on a powercard
+                    self.autoAss.append(self.players[self.turnIndex])
+                self.standings.append(self.players[self.turnIndex])
+                self.lastPlayedIsFinished = True
+                self.players.pop(self.turnIndex)
+
+            if len(self.players) == 1:
+                self.standings.append(self.players[0])
+                self.gameOver = True 
+        
+        #newPlay["cardsOnTable"] = self.cardsOnTable
+        #emit("newPlay", newPlay)
+        self.playCards(cardsToPlay)
+        stepObj["cardsOnTable"] = self.cardsOnTable
+
+        if len(self.players) == 1:
+            self.turnIndex = 0
+        elif isBurn and not self.lastPlayedIsFinished:
+            self.turnIndex = (self.turnIndex) % len(self.players)
+        elif isBurn and self.lastPlayedIsFinished:
+            self.turnIndex = ((self.turnIndex % len(self.players))) % len(self.players)
+        elif not self.lastPlayedIsFinished or passed:
+            self.turnIndex = (self.turnIndex + 1) % len(self.players)
+        else: 
+            self.turnIndex = self.turnIndex % len(self.players)
+
+        self.turnId = self.players[self.turnIndex].id
+        stepObj["nextId"] = self.turnId
+        stepObj["isBurn"] = isBurn
+        stepObj["isFinished"] = self.gameOver 
+        stepObj["passed"] = passed
+        return stepObj
+
 
 #def encodePlays(plays, value):
 #    # Singles(14) go from 0-14

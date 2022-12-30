@@ -3,9 +3,11 @@ let socket = null;
 
 joinedGame = false
 joinedWaitingRoom = false
-playerID = undefined
+playerId = undefined
 hand = []
 cardsOnTable = []
+isTurn = false;
+oponentHands = {}
 
 // Once the users name has been inputted, the socket is created
 function joinGame(){
@@ -19,7 +21,9 @@ function joinGame(){
         socket.on("gameJoined", joinWaitingRoom);
         socket.on("gamePending", gamePending);
         socket.on("gameStarted",gameStarted); 
+        socket.on("promptPlay", promptPlay);
         socket.on("newPlay", newPlayReceived);
+        socket.on("gameFinished", gameFinished);
         socket.emit("joinGame", playerName);
     }
 
@@ -46,7 +50,7 @@ function joinWaitingRoom(numPlayers){
         playersString = document.getElementById("waitingLi");
         playersString.innerHTML = "Waiting for other players... (" + numPlayers + "/6)"; 
     }else{
-        playerID = numPlayers
+        playerId = numPlayers
         let gameDiv = document.getElementById("gameDiv");
         while(gameDiv.children.length > 0){
             gameDiv.removeChild(gameDiv.firstChild)
@@ -55,11 +59,11 @@ function joinWaitingRoom(numPlayers){
         playersString.id = "waitingLi";
         playersString.innerHTML = "Waiting for other players... (" + numPlayers + "/6)";
         gameDiv.appendChild(playersString)
-        button = document.createElement("a");
+        button = document.createElement("button");
         button.classList.add("button1");
         button.appendChild(document.createTextNode("Start Game"))
         button.onclick = startTheGame
-        gameDiv.append(button)
+        gameDiv.appendChild(button)
     }
 
 }
@@ -84,10 +88,169 @@ function gamePending(){
     }
 }
 
+
+function cardSelected(){
+    if(this.classList.contains("active")){
+        this.classList.remove("active");
+    }else if(this.classList.contains("disabled") == false){
+        this.classList.add("active");
+    }
+}
+
+function drawHand(){
+				//	<button class="card">
+				//		<img class="card" src="img/playingCards/spades_3.svg"></img>
+				//	</button>
+
+    cardPath = "img/playingCards/"
+    divHand = document.getElementById("divHand");
+    left = 0;
+    while(divHand.children.length > 0){
+        divHand.removeChild(divHand.firstChild);
+    }
+    for(let i=0;i<hand.length;i++){
+        card = ""
+        cardNames = {'14' : 'joker_black', '1': 'spades_ace', '11': 'spades_jack', '12': 'spades_queen', '13': 'spades_king'}
+        if(hand[i] in cardNames){
+            card = cardNames[hand[i]] +  ".svg"
+        }else{
+            card = "spades_" + hand[i] + ".svg"
+        }
+        iCard = document.createElement("img");
+        iCard.classList.add("card");
+        iCard.src = cardPath + card;
+        iCard.style.left= left + "px";
+        iCard.onclick = cardSelected;
+        iCard.cardValue = hand[i];
+        left += 20;
+
+        
+        divHand.appendChild(iCard);
+
+    }
+}
+
+function clearTable(){
+    divTable = document.getElementById("divTable");
+    left = 0;
+    while(divTable.children.length > 0){
+        divTable.removeChild(divTable.firstChild);
+    }
+}
+
+function addCardsToTable(cardsToAdd){
+    cardPath = "img/playingCards/"
+
+    console.log("Drawing cards on table: " + cardsToAdd);
+
+    clearTable()
+
+
+    let left = 10;
+    for(let i=0;i<cardsToAdd.length;i++){
+        card = ""
+        cardNames = {'14' : 'joker_black', '1': 'spades_ace', '11': 'spades_jack', '12': 'spades_queen', '13': 'spades_king'}
+        if(cardsToAdd[i] in cardNames){
+            card = cardNames[cardsToAdd[i]] +  ".svg"
+        }else{
+            card = "spades_" + cardsToAdd[i] + ".svg"
+        }
+        iCard = document.createElement("img");
+        iCard.classList.add("card");
+        iCard.classList.add("display");
+        iCard.src = cardPath + card;
+        iCard.style.left= left + "px";
+        iCard.onclick = cardSelected;
+        iCard.cardValue = cardsToAdd[i];
+        iCard.style.transform = "rotate(-4deg);"
+        left += 20;
+
+        
+        divTable.appendChild(iCard);
+    }
+
+}
+
+function disableHand(){
+    divHand = document.getElementById("divHand");
+    for(let i=0;i<divHand.children.length;i++){
+        let child = divHand.children[i];
+        if(child.classList.contains("active")){
+            child.classList.remove("active");
+        }
+        
+        child.classList.add("disabled");
+    }
+}
+
+function enableCards(){
+    divHand = document.getElementById("divHand");
+    for(let i=0;i<divHand.children.length;i++){
+        let child = divHand.children[i]
+        if(child.classList.contains("disabled")){
+            child.classList.remove("disabled");
+        }
+    }
+
+}
+
+function initializeOponentHands(){
+
+    gameDiv = document.getElementById("gameDiv")
+    for(let i=2;i<7;i++){
+        divOpSeat = document.createElement("div");
+        divOpSeat.id="opSeat" + i;
+        divOpSeat.classList.add("oponentHand");
+        divOpSeat.classList.add("seat" + i);
+        gameDiv.appendChild(divOpSeat);
+        drawOponentCards(i)
+    }
+
+}
+
+function getSeat(oponentId){
+    seat = (oponentId-playerId);
+    if(seat <= 0){
+        seat = 6 + seat;
+    }
+    seat = seat + 1;
+    return seat
+}
+
+function drawOponentCards(oponentId){
+    cardPath = "img/playingCards/"
+
+    // Loop through each oponent.
+    console.log("Drawing cards for oponent: " + oponentId + " num cards: " + oponentId["numCards"]);
+    oponentObj = oponentHands[oponentId];
+    let divOpSeat = document.getElementById("opSeat" + oponentObj["seat"]);
+    console.log("Oponent(" + oponentId + ") Getting the seat: " + oponentObj["seat"])
+
+    while(divOpSeat.children.length > 0){
+        divOpSeat.removeChild(divOpSeat.firstChild);
+    }
+
+    left = 0;
+    for(let i=0;i<oponentObj["numCards"];i++){
+        card = "red.svg"
+        iCard = document.createElement("img");
+        iCard.classList.add("oponentCard");
+        iCard.src = cardPath + card;
+        iCard.style.left= left + "px";
+        left += 10;
+
+
+        divOpSeat.appendChild(iCard);
+
+    }
+
+
+}
+
 function gameStarted(handObject){
     let gameDiv = document.getElementById("gameDiv");
     let titleHeader = document.getElementById("titleHeader");
-    titleHeader.innerHTML = "President (ID) " + playerID
+    titleHeader.innerHTML = "President (ID) " + playerId
     while(gameDiv.children.length > 0){
         gameDiv.removeChild(gameDiv.firstChild);
     }
@@ -98,44 +261,183 @@ function gameStarted(handObject){
         gameDiv.appendChild(pDesc);
     }
     */
+    //Initialize oponent hands
+    for(let i=1; i<7;i++){
+        if(i == playerId){
+            continue;
+        }
+        seat = getSeat(i);
+        oponentHands[i] = {};
+        oponentHands[i]["numCards"] = handObject[i].length;
+        oponentHands[i]["seat"] = seat;
+        
+    }
+    for(key in oponentHands){
+       console.log("Player(" + key + ") in seat: " + oponentHands[key]["seat"]);
+    }
+    initializeOponentHands();
     // Add the hand paragraph object
-    hand = handObject[playerID]
-    pDesc = document.createElement("p");
-    pDesc.innerHTML = "\n\nMY HAND: " + hand;
-    pDesc.id = "pHand"
-    gameDiv.appendChild(pDesc);
-
     // Add the Table paragraph object
-    pTable = document.createElement("p");
-    pTable.innerHTML = "TABLE: " + cardsOnTable;
-    pTable.id = "pTable"
-    gameDiv.appendChild(pTable);
+    tableDiv = document.createElement("div");
+    tableDiv.id = "divTable";
+    tableDiv.classList.add("table");
+    //tableDiv.style.width=105.4 +  (4 * 25) + "px";
+    //tableDiv.style.position="relative";
+    //tableDiv.style.margin="auto"
+    gameDiv.appendChild(tableDiv);
 
-    // Add the text input
-    textInput = document.createElement("input")
-    textInput.type="textbox"
-    textInput.id="inputPlay"
-    gameDiv.appendChild(textInput)
+    hand = handObject[playerId]
+    //let divContainer = document.createElement("div");
+    //let h2 = document.createElement("h2")
+    //h2.innerHTML = "Your Hand:";
+    //divContainer.appendChild(h2);
+    //divContainer.style.position="relative";
+    
+    let divHand = document.createElement("div");
+    divHand.id = "divHand";
+    //divHand.style.width=105.4 +  (4 * 25) + "px";
+    //divHand.style.position="relative";
+    //divHand.style.margin="auto";
+    //divHand.height="175px";
+    divHand.classList.add("hand");
+    //divContainer.appendChild(divHand);
+    gameDiv.appendChild(divHand);
+    drawHand();
+    disableHand();
+
+
+
+    pStatus = document.createElement("p");
+    pStatus.id = "pStatus";
+    gameDiv.appendChild(pStatus);
+
 
     // Add the button to submit the play
-    button = document.createElement("a");
+    button = document.createElement("button");
     button.classList.add("button1");
     button.appendChild(document.createTextNode("Submit play"));
     button.onclick = submitPlay;
-    button.disabled = false;
+    button.id = "submitButton"
+    button.disabled = true;
+    button.style.position="absolute"
+    button.style.bottom="0px"
+    button.style.left="40%;"
     gameDiv.append(button)
 }
 
-function submitPlay(){
-    let playSelected = document.getElementById("inputPlay").value;
-    console.log("Submitting play " + playSelected);
+function promptPlay(promptObj){
+    if(promptObj["playerId"] != playerId){
+        console.log("You where prompted out of order")
+        //console.log("Prompting this socket for card");
+        return;
+    }
+    if(promptObj["notFirstAttempt"]){
+        alert("Play inputted is invalid, please try again")
+        let pStatus = document.getElementById("pStatus");
+        pStatus.innerHTML = "INAVLID PLAY, please try again"
+    }
+    enableCards();
+    let submitButton = document.getElementById("submitButton")
+    submitButton.disabled=false;
+    submitButton.bottom="0px;"
+    submitButton.left="40%;"
+    submitButton.position="absolute;"
+    isTurn = true;
 }
 
+
+function submitPlay(){
+    if(isTurn){
+        let playObject={}
+        playObject["playerId"] = playerId
+        let divHand = document.getElementById("divHand");
+        let play = []
+        for(let i=0;i<divHand.children.length;i++){
+            let child = divHand.children[i];
+            if(child.classList.contains("active")){
+                play.push(child.cardValue);
+            }
+        }
+
+        play = play.toString();
+        if(play.length == 0){
+            play = [0].toString();
+        }
+        playObject["play"] = play
+
+        socket.emit("playSelected", playObject)
+        disableHand();
+    }
+}
+
+function helloButton(){
+    console.log("hello");
+}
+
+
 function newPlayReceived(playObject){
-    // "playerID": The playerID of the player who played the new cards
+    // "playFromId": The playerId of the player who played the new cards
     // "playerName": The playername of the player who played the cards
     // "cardsPlayed": The cards played by the player
     // "cardsOnTable": The cards on table after the play
+    // "validPlay": Is the play valid
+    // "nextId": The id of the next person to play
+    // "isBurn": is the play a burn
+    // "isFinished": is the game finished
+    // "passed": Did the player pass
+
+    if(isTurn && playObject["playFromId"] == playerId){
+        for(let i=0; i<playObject["cardsPlayed"].length;i++){
+            for(let j=0;j<hand.length; j++){
+                if(playObject["cardsPlayed"][i] == hand[j]){
+                    delete hand[j];
+                    break;
+                }
+            }
+
+        }
+        // Get the hand text box and update.
+        hand = hand.filter(n=>n)
+        drawHand();
+        disableHand();
+    }else{
+        oponentId = playObject["playFromId"]
+        oponentHands[oponentId]["numCards"] = oponentHands[oponentId]["numCards"] - playObject["cardsPlayed"].length  
+        drawOponentCards(oponentId)
+
+    }
+
+    pStatus = document.getElementById("pStatus")
+    if(playObject["isBurn"]){
+        pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") BURNED!";
+    }else if(playObject["passed"]){
+        pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") Passed!";
+    }else{
+        pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") Played: " + playObject["play"];
+    }
+    // Set the turn to false because it was accepted
+    if(isTurn){
+        isTurn = false;
+    }
+    // Get the table text box and update.
+    if(cardsOnTable == playObject["cardsOntable"]){
+        return
+    }
+    cardsOnTable = playObject["cardsOnTable"];
+    if (cardsOnTable.length == 0 && playObject["isBurn"] == false){
+        clearTable();
+    }else if(playObject["burn"]){
+
+            addCardsToTable(playObject["play"]);
+            setTimeout(function() {
+            clearTable();
+                
+            }, delayInMilliseconds);
+    }else{
+        addCardsToTable(cardsOnTable)
+
+    }
+
     
     
 }
@@ -146,4 +448,20 @@ function displayClientHello(){
     li = document.createElement("li");
     li.appendChild(document.createTextNode("ServerSaysHello"));
     outputDiv.appendChild(li);
+}       
+
+function gameFinished(standings){
+    let gameDiv = document.getElementById("gameDiv");
+    let titleHeader = document.getElementById("titleHeader");
+    titleHeader.innerHTML = "Game Over!"
+    while(gameDiv.children.length > 0){
+        gameDiv.removeChild(gameDiv.firstChild);
+    }
+
+    pStandings = document.createElement("p");
+    pStandings.innerHTML = standings;
+    gameDiv.appendChild(pStandings);
 }
+
+
+

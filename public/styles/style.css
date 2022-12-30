@@ -3,6 +3,7 @@ div2{
 	color: #ccccb3;
 	background-color: #0b1f19;
 	display: block;
+	height: auto;
 	margin-left: 15%;
 	margin-right: 15%;
 	margin-bottom: 20px;
@@ -36,6 +37,126 @@ p3{
 	margin: 20px;
 }
 
+
+.oponentHand{
+	height: 75px;
+	width: 132.7px;
+}
+
+.oponentCard{
+	position: absolute;
+	padding:0;
+	background:transparent;
+	border:none;
+	top: 0px;
+	left:0px;
+	height: 75px;
+	width:52.7px;
+	border-radius:5;
+}
+
+.seat2{
+	position:absolute;
+	top: 60%;
+	left: 0px;
+	translate: rotate(55%);
+	margin:0;
+}
+
+.seat3{
+	position:absolute;
+	left: 0px;
+	top:20%;
+	translate: rotate(-55%);
+	margin:0;
+}
+
+.seat4{
+	position: relative;
+	margin: auto;
+}
+
+.seat5{
+	position:absolute;
+	top:20%;
+	right:0px;
+	translate: rotate(55%);
+	margin:0;
+}
+
+.seat6{
+	position:absolute;
+	top: 60%;
+	right: 0px;
+	translate: rotate(-55%);
+	margin:0;
+}
+
+.hand{
+	position: absolute;
+	height: 175px;
+	width: 265.4px;
+	left:40%;
+	bottom:10%;
+}
+
+.card{
+	position: absolute;
+	padding:0;
+	background:transparent;
+	border:none;
+	top: 25px;
+	left:0px;
+	height: 150px;
+	width: 105.4px;
+	border-radius:5;
+}
+
+.gameDiv{
+	position:relative;
+	height:550px;
+}
+
+.table{
+	position: absolute;
+	top: 20%;
+	left:40%;
+	width: 185.4px;
+	height: 150px;
+	padding-left:10px;
+	padding-right:10px;
+	padding-top:15px;
+	padding-bottom:15px;
+	border-radius:15px;
+	background-color: #ccccb3;
+}
+
+.card:hover{
+	top:0px;
+}
+
+
+.display{
+	top:15px;
+}
+.display:hover{
+	top:15px;
+}
+
+.disabled{
+	filter: saturate(40%);
+	top:25px;
+	opacity: 75%;
+}
+
+.disabled:hover{
+	top:25px;
+}
+
+.active{
+	top:0px;
+}
+
 /* Technologies/Languages Buttons */
 .button2{
 	display: inline-block;
@@ -51,7 +172,7 @@ p3{
 }
 .button2:hover{
 	background-color: rgb(11, 31, 25);
-	border-radious: 15px;
+	border-radius: 15px;
 	color: #B2D2A4;
 	cursor:pointer;
 	text-decoration: none;
@@ -60,9 +181,8 @@ p3{
 /* dawsontheroux.ca button */
 .button3{
 	color: #B2D2A4; 
-	font-size:60px; 
+	font-size:30px; 
 	font-weight: bold; 
-	text-aling: center; 
 	margin: 0px; 
 	text-decoration: none;
 }
@@ -112,13 +232,20 @@ div1{
 	size: 10px;
 	text-decoration: none;
 	background-color: rgb(11, 31, 25);
+	border: none;
+	border-radius: 5px;
 }
 .button1:hover{
 	background-color: #B2D2A4;
-	border-radious: 15px;
+	border-radius: 5px;
 	color: rgb(11, 31, 25);
 	cursor:pointer;
 	text-decoration: none;
+}
+
+.button1:disabled{
+	opacity: 75%;
+
 }
 p1{
 	color: #B2D2A4;
@@ -127,6 +254,7 @@ p1{
 	text-aling: center;
 	margin: 0px;
 }
+
 
 
 /*----------------------Phone/Small device CSS--------------------*/
