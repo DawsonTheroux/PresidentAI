@@ -242,7 +242,7 @@ class AIModelInterface:
 
     def promptCard(self, player, cardsOnTable):
         #print(f"Prompting AI player({player.id}) for a card")
-        device = "cpu"
+        device = "cuda"
         #print(f"({player.id}): Cards On Table: {cardsOnTable}")
         possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
         #print(f"({player.id}): possiblePlays: {possiblePlays}")

@@ -14,25 +14,26 @@ class PresidentNet(nn.Module):
 
         self.layer1 = nn.Sequential(
             nn.Linear(168,1024),
-            nn.ReLU()
-            #nn.ELU()
+            #nn.ReLU()
+            nn.ELU()
         )
         self.layer2 = nn.Sequential(
             #nn.Dropout(0.5),
             nn.Linear(1024, 1024), 
-            nn.ReLU()
-            #nn.ELU()
+            #nn.ReLU()
+            nn.ELU()
         )
         self.layer3 = nn.Sequential(
             #nn.Dropout(0.5),
             nn.Linear(1024,512),
-            nn.ReLU()
-            #nn.ELU()
+            #nn.ReLU()
+            nn.ELU()
         )
         self.layer4 = nn.Sequential(
             #nn.Dropout(0.5),
             nn.Linear(512, 256),
-            nn.Tanh()
+            nn.ELU()
+            #nn.Tanh()
             
         )
         self.layer5 = nn.Sequential(
@@ -51,5 +52,5 @@ class PresidentNet(nn.Module):
         x = self.layer4(x)
         x = self.dropout4(x)
         x = self.layer5(x)
-        output = F.log_softmax(x, dim=0)
+        output = torch.tanh(x)
         return output

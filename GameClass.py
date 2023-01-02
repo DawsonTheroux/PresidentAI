@@ -252,7 +252,7 @@ class Game:
             # THe play must not result in an empty hand
             if numberOfNonPowerCardsInHandBefore != 0 and numberOfNonPowerCardsInHandAfter == 0 and len(logObject["cardsPlayed"]) != len(logObject["cardsInHand"]):
                 #scoreInfo[logObject["id"]]["score"] = -10
-                playerScore = -4
+                playerScore = -3
                 autoAssThisTurn = True
             
             # THe play must not result in an empty hand

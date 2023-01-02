@@ -124,73 +124,73 @@ def calculateFitness(evalModel, competatorModel, numberOfGames = 500):
         #print(f"ResultsArray[0].id: {resultsArr[0].id}")
         if resultsArr[0].id in evalModelIds:
             if resultsArr[0].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness += 1
             evalModelPlacements["President"] += 1
         else:
             if resultsArr[0].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness += 1
 
         if resultsArr[1].id in evalModelIds:
             if resultsArr[1].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness += 1
             evalModelPlacements["VP"] += 1
         else:
             if resultsArr[1].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness += 1
         
         if resultsArr[2].id in evalModelIds:
             if resultsArr[2].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness += 1
             evalModelPlacements["Neutral1"] += 1
         else:
             if resultsArr[2].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness += 1
 
         if resultsArr[3].id in evalModelIds:
             if resultsArr[3].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness -= 1
             evalModelPlacements["Neutral2"] += 1
         else:
             if resultsArr[3].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness -= 1
 
         if resultsArr[4].id in evalModelIds:
             if resultsArr[4].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness -= 1
             evalModelPlacements["Vice Ass"] += 1
         else:
             if resultsArr[4].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness -= 1
 
         if resultsArr[5].id in evalModelIds:
             if resultsArr[5].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness -= 1
             evalModelPlacements["Ass"] += 1
         else:
             if resultsArr[5].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness -= 1
         
