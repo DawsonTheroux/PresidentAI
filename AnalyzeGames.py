@@ -283,10 +283,9 @@ if __name__ == "__main__":
     competatorModel = PresidentNet()
     evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model6903_gen0_9.pt"
     evalModel.load_state_dict(torch.load(evalModelPath, map_location=torch.device('cpu')))
-    game_obj = Game(3, evalModel)
+    game_obj = Game(4, evalModel)
     filename = f"testfile.csv"
     game_obj.outputLogToFile(filename)
-    '''
     gameMatrix = np.loadtxt(filename, delimiter = ",")
     gameMatrix = gameMatrix.reshape((-1, 224))
     for i in range(len(gameMatrix)):
@@ -300,7 +299,6 @@ if __name__ == "__main__":
         print(f"cardsDiscarded: {cardsPlayed}")
         print(f"playChosen: {playChosen}")
         print("===========================================")
-    '''
 
 
     '''

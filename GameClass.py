@@ -254,10 +254,15 @@ class Game:
                 #scoreInfo[logObject["id"]]["score"] = -10
                 playerScore = 1
                 autoAssThisTurn = True
+                if playerPass[0] != 0:
+                    playerPass = [1]
             
             # THe play must not result in an empty hand
             if numberOfNonPowerCardsInHandBefore == 0:
+                playerScore = 1
                 validPlay = False
+                if playerPass[0] != 0:
+                    playerPass = [1]
             #print(f"auto ass this turn: {autoAssThisTurn}")
             #print(f"Valid Play: {validPlay}")
             
