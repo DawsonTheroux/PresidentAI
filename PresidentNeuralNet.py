@@ -6,8 +6,8 @@ import torch.nn.functional as F
 class PresidentNet(nn.Module):
     def __init__(self):
         super(PresidentNet, self).__init__()
-        self.dropout0 = nn.Dropout(0.2)
-        self.dropout1 = nn.Dropout(0.5)
+        self.dropout0 = nn.Dropout(0.05)
+        self.dropout1 = nn.Dropout(0.2)
         self.dropout2 = nn.Dropout(0.5)
         self.dropout3 = nn.Dropout(0.5)
         self.dropout4 = nn.Dropout(0.5)

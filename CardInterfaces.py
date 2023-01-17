@@ -267,7 +267,10 @@ class AIModelInterface:
         for i in range(len(self.game.players)):
             encodedPlayers[i] = 1
             
-        self.model.eval()
+        if self.game.enableDropout:
+            self.model.train()
+        else:
+            self.model.eval()
         
         # Data structuure: possiblePlayesEncoded(54), cardsOnTable, All cards enccoded(54)
         topPredsArr = []
@@ -325,7 +328,7 @@ class AIModelInterface:
                     else:
                         #print("Skipping Pass")
                         playNumber -= 1
-                elif possiblePlaysEncoded[predInd-1] != -1:
+                elif possiblePlaysEncoded[predInd-1] != 0:
                     if playNumber == 0:
                         play = candidate
                         break
@@ -340,7 +343,7 @@ class AIModelInterface:
                     candidate = decodePlay(predInd)
                     if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
                         break
-                    elif possiblePlaysEncoded[predInd-1] != -1:
+                    elif possiblePlaysEncoded[predInd-1] != 0:
                         play = candidate
                         break
                     

@@ -7,10 +7,9 @@ from CardInterfaces import getPossiblePlays
 from CardInterfaces import encodePlays
 
 
-# Disabled Auto Ass
-# Things to try: Randomize game playing to learn new strategies during game(1,model)
-# Implement a reinforcement learning with goal based reward.
-# Discard the last play since it is almost guarenteed.
+# NEXT:
+#   - Try and run the updated parameters without creating new training data in model.train() mode
+#       - Right now it is running in model.train() mode when generating new data to act as a pseudo random informed player
 
 class Game:
 
@@ -24,6 +23,7 @@ class Game:
         self.autoAss = []
         self.logArray = []
         self.isTrainingDataGerneration = False
+        self.enableDropout = False
         self.encodedPlayedCards = np.zeros(54)
         self.assignPlayers(gametype, model1, model2)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
@@ -62,6 +62,8 @@ class Game:
 
         if gameType == 1: # All players a President model
             #self.isTrainingDataGerneration = True
+            self.isTrainingDataGerneration = False
+            self.enableDropout = False
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
             #for i in range(3):
@@ -156,14 +158,20 @@ class Game:
             finalStandings.append(player)
         #for player in self.autoAss:
             #finalStandings.append(player)
+        _, autoAsses = self.getResults()
 
         scoreInfo = {}
         for i, player in enumerate(finalStandings):
             scoreInfo[player.id] = {}
-            scoreInfo[player.id]["score"] = 6 - i
+            if player.id in autoAsses:
+                scoreInfo[player.id]["score"] = 1
+            else:
+                scoreInfo[player.id]["score"] = 6 - i
             scoreInfo[player.id]["numPlays"] = 1
             #TESTING
             #print(f"player:{player.id}: score: {6-i}")
+        #for key in scoreInfo.keys():
+            #print(f"PlayerId: {key} - Score: {scoreInfo[key]['score']}")
 
         aiPlayerKeys = []
         for key in scoreInfo.keys():
