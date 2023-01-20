@@ -127,7 +127,7 @@ def receivePlay(playObj):
         emit("promptPlay", {"playerId": playObj["playerId" ], "notFirstAttempt": True})
         return
     
-    emit("newPlay", stepObj)
+    emit("newPlay", stepObj, braodcast=True)
 
     isSocketPlayer = stepObj["nextId"] in socketio.players
     #for playerNumber in socketio.players:
@@ -140,7 +140,7 @@ def receivePlay(playObj):
 
     while not isSocketPlayer:
         stepObj = socketio.gameObj.socketGameStep(None, False)
-        emit("newPlay", stepObj)
+        emit("newPlay", stepObj, broadcast=True)
         time.sleep(0.75)
         if stepObj["isFinished"]:
             gameFinished()
