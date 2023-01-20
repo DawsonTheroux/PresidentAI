@@ -3,11 +3,13 @@ from flask import render_template
 from flask_socketio import SocketIO, send, emit
 import os
 import time
+import eventlet
 from GameClass import Game
 
 
 app = Flask(__name__, template_folder="public")
 app.config["SECRET_KEY"] = 'ThisIsASecret?!'
+eventlet.monkey_patch() 
 socketio = SocketIO(app, logger=False, engineio_logger=False)
 socketio.numPlayers = 0
 socketio.gameActive = False
@@ -113,7 +115,6 @@ def receivePlay(playObj):
     if playObj["playerId"] != socketio.gameObj.turnId:
         print("**An invalid player tried to submit a turn")
         return
-
     # StepObj from socketGameStep()
     #   "validPlay": Bool if the play was valid or not.
     #   "playFromId": the id who played last
@@ -127,7 +128,8 @@ def receivePlay(playObj):
         emit("promptPlay", {"playerId": playObj["playerId" ], "notFirstAttempt": True})
         return
     
-    emit("newPlay", stepObj, braodcast=True)
+    print(f"emitting New play {stepObj}")
+    emit("newPlay", stepObj, broadcast=True)
 
     isSocketPlayer = stepObj["nextId"] in socketio.players
     #for playerNumber in socketio.players:
@@ -140,6 +142,7 @@ def receivePlay(playObj):
 
     while not isSocketPlayer:
         stepObj = socketio.gameObj.socketGameStep(None, False)
+        print(f"emitting New play {stepObj}")
         emit("newPlay", stepObj, broadcast=True)
         time.sleep(0.75)
         if stepObj["isFinished"]:
