@@ -9,6 +9,10 @@ from GameClass import Game
 app = Flask(__name__, template_folder="public")
 app.config["SECRET_KEY"] = 'ThisIsASecret?!'
 socketio = SocketIO(app, logger=False, engineio_logger=False)
+socketio.numPlayers = 0
+socketio.gameActive = False
+socketio.lobbyCreated = False
+socketio.players = {}
 
 
 
@@ -182,12 +186,9 @@ def helloServer():
     emit("helloClient")
 
 def createApp():
-    socketio.numPlayers = 0
-    socketio.gameActive = False
-    socketio.lobbyCreated = False
-    socketio.players = {}
 
     socketio.run(app, port=8081, debug=True)
+    #return socketio
 
 
 if __name__ == "__main__":
