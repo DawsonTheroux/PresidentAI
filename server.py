@@ -182,7 +182,7 @@ def helloServer():
     emit("helloClient")
 
 def createApp():
-    Socketio.numPlayers = 0
+    socketio.numPlayers = 0
     socketio.gameActive = False
     socketio.lobbyCreated = False
     socketio.players = {}
