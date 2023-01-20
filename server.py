@@ -181,6 +181,15 @@ def helloServer():
     print("The client says hello, responding with hello")
     emit("helloClient")
 
+def createApp():
+    Socketio.numPlayers = 0
+    socketio.gameActive = False
+    socketio.lobbyCreated = False
+    socketio.players = {}
+
+    socketio.run(app, port=8081, debug=True)
+
+
 if __name__ == "__main__":
     #app.run(port=8081)
     socketio.numPlayers = 0
