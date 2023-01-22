@@ -189,8 +189,12 @@ def helloServer():
     emit("helloClient")
 
 def createApp():
-
-    socketio.run(app, port=8081, debug=True)
+    
+    ssl_cert = "/etc/letsencrypt/live/dawsontheroux.ca/fullchain.pem"
+    ssl_cert_key = "/etc/letsencrypt/live/dawsontheroux.ca/privkey.pem"
+    context = (ssl_cert, ssl_cert_key)
+    #socketio.run(app, port=8081, debug=True, certfile=ssl_cert, keyfile=ssl_cert_key) 
+    socketio.run(app, port=8081, debug=True) 
     #return socketio
 
 

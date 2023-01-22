@@ -94,7 +94,7 @@ class Game:
                 self.players.append(PlayerModule.Player(2,i + 0.1, model2, self))
         elif gameType == 6:
             model1 = PresidentNet()
-            model1.load_state_dict(torch.load("Models\\model8000_gen7_17.pt", map_location=torch.device('cpu')))
+            model1.load_state_dict(torch.load("Models/model8000_gen7_17.pt", map_location=torch.device('cpu')))
             self.isWebsiteGame = True
             self.socketio = socketio
             self.players.append(PlayerModule.Player(3, 1, socketio=socketio)) # Right now this is generating all CMD line players
