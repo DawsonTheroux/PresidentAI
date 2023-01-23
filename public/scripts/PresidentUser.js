@@ -198,10 +198,21 @@ function initializeOponentHands(){
 
     gameDiv = document.getElementById("gameDiv")
     for(let i=2;i<7;i++){
+        opStatus = document.createElement("p3");
+        opStatus.id = "opStatus" + i;
+        opStatus.innerHTML = "opstatus"
+        opStatus.style.margin=0;
+        opStatus.style.padding=0;
         divOpSeat = document.createElement("div");
-        divOpSeat.id="opSeat" + i;
-        divOpSeat.classList.add("oponentHand");
+        
+        divOpSeat.append(opStatus);
+        //divOpSeat.classList.add("oponentHand");
         divOpSeat.classList.add("seat" + i);
+        divOpHand = document.createElement("div");
+        divOpHand.id="opSeat" + i;
+        divOpHand.classList.add("oponentHand");
+        divOpSeat.append(divOpHand);
+        
         gameDiv.appendChild(divOpSeat);
         drawOponentCards(i)
     }
@@ -276,38 +287,26 @@ function gameStarted(handObject){
        console.log("Player(" + key + ") in seat: " + oponentHands[key]["seat"]);
     }
     initializeOponentHands();
-    // Add the hand paragraph object
-    // Add the Table paragraph object
     tableDiv = document.createElement("div");
     tableDiv.id = "divTable";
     tableDiv.classList.add("table");
-    //tableDiv.style.width=105.4 +  (4 * 25) + "px";
-    //tableDiv.style.position="relative";
-    //tableDiv.style.margin="auto"
     gameDiv.appendChild(tableDiv);
 
     hand = handObject[playerId]
-    //let divContainer = document.createElement("div");
-    //let h2 = document.createElement("h2")
-    //h2.innerHTML = "Your Hand:";
-    //divContainer.appendChild(h2);
-    //divContainer.style.position="relative";
-    
+    let playerArea = document.createElement("div");
     let divHand = document.createElement("div");
     divHand.id = "divHand";
-    //divHand.style.width=105.4 +  (4 * 25) + "px";
-    //divHand.style.position="relative";
-    //divHand.style.margin="auto";
-    //divHand.height="175px";
-    divHand.classList.add("hand");
-    //divContainer.appendChild(divHand);
-    gameDiv.appendChild(divHand);
+
+    //divHand.classList.add("hand");
+    playerArea.classList.add("hand");
+    playerArea.appendChild(divHand);
+    gameDiv.appendChild(playerArea);
     drawHand();
     disableHand();
 
 
 
-    pStatus = document.createElement("p");
+    pStatus = document.createElement("p3");
     pStatus.id = "pStatus";
     gameDiv.appendChild(pStatus);
 
@@ -322,7 +321,8 @@ function gameStarted(handObject){
     button.style.position="absolute"
     button.style.bottom="0px"
     button.style.left="40%;"
-    gameDiv.append(button)
+    playerArea.appendChild(button)
+    //gameDiv.append(button)
 }
 
 function promptPlay(promptObj){
@@ -458,9 +458,21 @@ function gameFinished(standings){
         gameDiv.removeChild(gameDiv.firstChild);
     }
 
-    pStandings = document.createElement("p");
-    pStandings.innerHTML = standings;
-    gameDiv.appendChild(pStandings);
+    let standingsItem  = document.createElement("ol");
+    for(let i=0;i<6;i++){
+
+        let positionItem = document.createElement("li");
+        positionItem.appendChild(document.createTextNode(standings[i]["name"])); 
+        standingsItem.appendChild(positionItem);
+    }
+    gameDiv.appendChild(standingsItem);
+    button = document.createElement("a");
+    button.classList.add("button1");
+    button.appendChild(document.createTextNode("New Game"))
+    button.href = "/"
+    gameDiv.appendChild(button);
+
+
 }
 
 

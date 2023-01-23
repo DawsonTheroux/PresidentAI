@@ -97,7 +97,7 @@ class Game:
             model1.load_state_dict(torch.load("Models/model8000_gen7_17.pt", map_location=torch.device('cpu')))
             self.isWebsiteGame = True
             self.socketio = socketio
-            self.players.append(PlayerModule.Player(3, 1, socketio=socketio)) # Right now this is generating all CMD line players
+            self.players.append(PlayerModule.Player(3, 1, socketio=socketio)) 
             for i in range(5):
                 self.players.append(PlayerModule.Player(2,i + 2, model1, self))
 
