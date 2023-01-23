@@ -1,23 +1,23 @@
-
 let socket = null;
 
-joinedGame = false
-joinedWaitingRoom = false
-playerId = undefined
-hand = []
-cardsOnTable = []
-isTurn = false;
-oponentHands = {}
+joinedGame = false          // Is the client in a game
+joinedWaitingRoom = false   // Is the client in the waiting room
+playerId = undefined        // What is the id of player (as seen by the gameClass)
+hand = []                   // The cards in your hand
+cardsOnTable = []           // The cards on the table
+isTurn = false;             // Is it the clients turn
+oponentHands = {}           // Object with oponent information like numcards, their seats, etc.
+
 
 // Once the users name has been inputted, the socket is created
 function joinGame(){
     let playerName = document.getElementById("txtPlayerName").value;
-    console.log("Joining a game");
-    //setupGameScreen();
+
+    // If the player actually inputted a name, then allow it to join a game
     if(playerName.length > 0 || socket == null){
-        joinedGame = true
+        joinedGame = true;
         socket=io();
-        socket.on("helloClient", displayClientHello);
+        //socket.on("helloClient", displayClientHello);
         socket.on("gameJoined", joinWaitingRoom);
         socket.on("gamePending", gamePending);
         socket.on("gameStarted",gameStarted); 
@@ -26,35 +26,24 @@ function joinGame(){
         socket.on("gameFinished", gameFinished);
         socket.emit("joinGame", playerName);
     }
-
 }
 
 
-/*
-function setupGameScreen(){
-    let gameDiv = document.getElementById("gameDiv");
-    while(gameDiv.children.length > 0){
-        gameDiv.removeChild(gameDiv.firstChild)
-    }
-    gameDiv.appendChild(document.createTextNode("Hello Socket"));
-    button = document.createElement("a");
-    button.classList.add("button1");
-    button.appendChild(document.createTextNode("Say Hello to the server"));
-    button.onclick = sayHelloToServer;
-    gameDiv.appendChild(button);
-}
-*/
-
+// Draw the waiting room HTML 
 function joinWaitingRoom(numPlayers){
     if(joinedWaitingRoom){
         playersString = document.getElementById("waitingLi");
         playersString.innerHTML = "Waiting for other players... (" + numPlayers + "/6)"; 
     }else{
-        playerId = numPlayers
+        playerId = numPlayers;
         let gameDiv = document.getElementById("gameDiv");
+
+        // Clear the gamediv.
         while(gameDiv.children.length > 0){
             gameDiv.removeChild(gameDiv.firstChild)
         }
+
+        // Draw all of the waiting room HTML in the gameDiv
         playersString = document.createElement("li");
         playersString.id = "waitingLi";
         playersString.innerHTML = "Waiting for other players... (" + numPlayers + "/6)";
@@ -65,20 +54,21 @@ function joinWaitingRoom(numPlayers){
         button.onclick = startTheGame
         gameDiv.appendChild(button)
     }
-
 }
 
+
+// Emite that the game has started (onlick of waiting room button)
 function startTheGame(){
     socket.emit("startGame")
 }
 
     
 
+//function sayHelloToServer(){
+//    socket.emit("helloServer")
+//}
 
-function sayHelloToServer(){
-    socket.emit("helloServer")
-}
-
+// Show loading screen while waiting for the initial game object from the server
 function gamePending(){
     let gameDiv = document.getElementById("gameDiv");
     let titleHeader = document.getElementById("titleHeader");
@@ -89,6 +79,7 @@ function gamePending(){
 }
 
 
+// When a card is selected add the "active" class so that it is translated 10px up.
 function cardSelected(){
     if(this.classList.contains("active")){
         this.classList.remove("active");
@@ -97,25 +88,30 @@ function cardSelected(){
     }
 }
 
-function drawHand(){
-				//	<button class="card">
-				//		<img class="card" src="img/playingCards/spades_3.svg"></img>
-				//	</button>
 
+// Draw the cards using images using the global "hand" Array.
+function drawHand(){
+    left = 0;
     cardPath = "img/playingCards/"
     divHand = document.getElementById("divHand");
-    left = 0;
+
+    // Remove all elements from the hand div.
     while(divHand.children.length > 0){
         divHand.removeChild(divHand.firstChild);
     }
+
+    // Go through all the cards and draw them.
     for(let i=0;i<hand.length;i++){
         card = ""
         cardNames = {'14' : 'joker_black', '1': 'spades_ace', '11': 'spades_jack', '12': 'spades_queen', '13': 'spades_king'}
+
         if(hand[i] in cardNames){
             card = cardNames[hand[i]] +  ".svg"
         }else{
             card = "spades_" + hand[i] + ".svg"
         }
+
+        // Create the HTML for the card.
         iCard = document.createElement("img");
         iCard.classList.add("card");
         iCard.src = cardPath + card;
@@ -123,13 +119,14 @@ function drawHand(){
         iCard.onclick = cardSelected;
         iCard.cardValue = hand[i];
         left += 20;
-
         
         divHand.appendChild(iCard);
 
     }
 }
 
+
+// Remove all cards from the table div.
 function clearTable(){
     divTable = document.getElementById("divTable");
     left = 0;
@@ -138,23 +135,24 @@ function clearTable(){
     }
 }
 
+
+// Add the cards to the table that were received from the server.
 function addCardsToTable(cardsToAdd){
     cardPath = "img/playingCards/"
 
-    console.log("Drawing cards on table: " + cardsToAdd);
+    clearTable() // Remove old cards from the table
 
-    clearTable()
-
-
-    let left = 10;
+    let left = 10; // The amount that the cards are shifted when creating the overlap
     for(let i=0;i<cardsToAdd.length;i++){
-        card = ""
+        let card = ""
         cardNames = {'14' : 'joker_black', '1': 'spades_ace', '11': 'spades_jack', '12': 'spades_queen', '13': 'spades_king'}
         if(cardsToAdd[i] in cardNames){
             card = cardNames[cardsToAdd[i]] +  ".svg"
         }else{
             card = "spades_" + cardsToAdd[i] + ".svg"
         }
+
+        // Create HTML for the card.
         iCard = document.createElement("img");
         iCard.classList.add("card");
         iCard.classList.add("display");
@@ -164,25 +162,27 @@ function addCardsToTable(cardsToAdd){
         iCard.cardValue = cardsToAdd[i];
         iCard.style.transform = "rotate(-4deg);"
         left += 20;
-
         
         divTable.appendChild(iCard);
     }
-
 }
 
+
+// Remove active class from all cards in hand and adding the disabled tag
+// - The disabled tag add transparency to the cards to show that it is not the clients turn.
 function disableHand(){
     divHand = document.getElementById("divHand");
     for(let i=0;i<divHand.children.length;i++){
         let child = divHand.children[i];
         if(child.classList.contains("active")){
             child.classList.remove("active");
-        }
-        
+        } 
         child.classList.add("disabled");
     }
 }
 
+
+// Remove the disabled class from the hand
 function enableCards(){
     divHand = document.getElementById("divHand");
     for(let i=0;i<divHand.children.length;i++){
@@ -191,34 +191,38 @@ function enableCards(){
             child.classList.remove("disabled");
         }
     }
-
 }
 
-function initializeOponentHands(){
 
+// Initialize the display elements of the oponent hands
+// - This includes the cards themselves and the status'
+function initializeOponentHands(){
     gameDiv = document.getElementById("gameDiv")
     for(let i=2;i<7;i++){
+        // Generate the status paragraph for the oponent
         opStatus = document.createElement("p3");
         opStatus.id = "opStatus" + i;
         opStatus.style.height="1.8em";
         opStatus.style.margin=0;
         opStatus.style.padding=0;
-        divOpSeat = document.createElement("div");
-        
+
+        // Generate the seat div for the oponent
+        divOpSeat = document.createElement("div"); 
         divOpSeat.append(opStatus);
-        //divOpSeat.classList.add("oponentHand");
         divOpSeat.classList.add("seat" + i);
+
+        // Generate the hand div for the oponent
         divOpHand = document.createElement("div");
         divOpHand.id="opSeat" + i;
         divOpHand.classList.add("oponentHand");
         divOpSeat.append(divOpHand);
         
         gameDiv.appendChild(divOpSeat);
-        drawOponentCards(i)
+        drawOponentCards(i);  // Addds the corrent number of card back images to each oponents hand div
     }
-
 }
 
+// Returns the seat number corresponding to certain oponent id.
 function getSeat(oponentId){
     seat = (oponentId-playerId);
     if(seat <= 0){
@@ -228,17 +232,16 @@ function getSeat(oponentId){
     return seat
 }
 
-function drawOponentCards(oponentId){
-    cardPath = "img/playingCards/"
 
-    // Loop through each oponent.
-    console.log("Drawing cards for oponent: " + oponentId + " num cards: " + oponentId["numCards"]);
-    oponentObj = oponentHands[oponentId];
+// Adds the card images to the oponent hand div.
+function drawOponentCards(oponentId){
+    let cardPath = "img/playingCards/"
+    let oponentObj = oponentHands[oponentId];
     let divOpSeat = document.getElementById("opSeat" + oponentObj["seat"]);
     let opSteat = document.getElementById("opStatus" + oponentObj["seat"]);
-    opSteat.innerHTML = " "
-    //console.log("Oponent(" + oponentId + ") Getting the seat: " + oponentObj["seat"])
+    opSteat.innerHTML = ""
 
+    // Clear the hand div of elements.
     while(divOpSeat.children.length > 0){
         divOpSeat.removeChild(divOpSeat.firstChild);
     }
@@ -252,35 +255,33 @@ function drawOponentCards(oponentId){
         iCard.style.left= left + "px";
         left += 10;
 
-
         divOpSeat.appendChild(iCard);
-
     }
 }
 
+
+// Set all the oponents status to empty strings.
+// - This is called on every new play so that only 1 player has a status at a time.
 function clearAllOponentStatus(){
     for(key in oponentHands){
         let opStatus = document.getElementById("opStatus" + oponentHands[key]["seat"])
-        opStatus.innerHTML = "\00 ";
+        opStatus.innerHTML = "";
     }
 }
 
+
+// Initialize all of the game HTML elements with the object given by the server.
 function gameStarted(handObject){
     let gameDiv = document.getElementById("gameDiv");
     let titleHeader = document.getElementById("titleHeader");
-    //titleHeader.innerHTML = "President (ID) " + playerId
-    titleHeader.innerHTML = "President"
+    titleHeader.innerHTML = "President";
+
+    // Clear the game div of all its HTML elements.
     while(gameDiv.children.length > 0){
         gameDiv.removeChild(gameDiv.firstChild);
     }
-    /*
-    for (const [key,value] of Object.entries(handObject)){
-        let pDesc = document.createElement("p");
-        pDesc.innerHTML = "Player(" + key + "):" + value;
-        gameDiv.appendChild(pDesc);
-    }
-    */
-    //Initialize oponent hands
+
+    //Initialize oponent hands with the info from the server.
     for(let i=1; i<7;i++){
         if(i == playerId){
             continue;
@@ -291,36 +292,28 @@ function gameStarted(handObject){
         oponentHands[i]["seat"] = seat;
         
     }
-    //for(key in oponentHands){
-    //   console.log("Player(" + key + ") in seat: " + oponentHands[key]["seat"]);
-    //}
-    initializeOponentHands();
+
+    initializeOponentHands();  // Add all the elements to the oponent hands. 
+
+    // Create the div that holds the Table cards.
     tableDiv = document.createElement("div");
     tableDiv.id = "divTable";
     tableDiv.classList.add("table");
     gameDiv.appendChild(tableDiv);
 
+    // Create the div that client play area.
     hand = handObject[playerId]
     let playerArea = document.createElement("div");
     let divHand = document.createElement("div");
     divHand.id = "divHand";
-
-    //divHand.classList.add("hand");
     playerArea.classList.add("hand");
     playerArea.appendChild(divHand);
     gameDiv.appendChild(playerArea);
-    drawHand();
-    disableHand();
 
+    drawHand();     // Draw the cards in the client hand
+    disableHand();  // Start the hand as disabled. The hand will be enabled when its the players turn.
 
-
-    // This has been changed to have player statuses instead.
-    //pStatus = document.createElement("p3");
-    //pStatus.id = "pStatus";
-    //gameDiv.appendChild(pStatus);
-
-
-    // Add the button to submit the play
+    // Add the submit button to the Player area 
     button = document.createElement("button");
     button.classList.add("button1");
     button.appendChild(document.createTextNode("Submit play"));
@@ -331,21 +324,25 @@ function gameStarted(handObject){
     button.style.bottom="0px"
     button.style.left="40%;"
     playerArea.appendChild(button)
-    //gameDiv.append(button)
 }
 
+
+// Prompt the client for the play.
+//  - If it is not the clients turn, this will be ignored.
 function promptPlay(promptObj){
     if(promptObj["playerId"] != playerId){
         console.log("You where prompted out of order")
-        //console.log("Prompting this socket for card");
         return;
     }
+    
+    // If the player is prompted with the "notFirstAttempt" flag,
+    // their last play was invalid and they should try again.
     if(promptObj["notFirstAttempt"]){
-        //alert("Play inputted is invalid, please try again")
-        //let pStatus = document.getElementById("pStatus");
-        //pStatus.innerHTML = "INAVLID PLAY, please try again"
+        alert("Play inputted is invalid, please try again")
     }
+
     enableCards();
+
     let submitButton = document.getElementById("submitButton")
     submitButton.disabled=false;
     submitButton.bottom="0px;"
@@ -355,12 +352,16 @@ function promptPlay(promptObj){
 }
 
 
+// Submit the play selected by the client by emitting the "playSelected" event.
+// NOTE: This only works when it is the clients turn.
 function submitPlay(){
     if(isTurn){
         let playObject={}
-        playObject["playerId"] = playerId
         let divHand = document.getElementById("divHand");
         let play = []
+        playObject["playerId"] = playerId
+
+        // Create the array of cards to play for the playObject.
         for(let i=0;i<divHand.children.length;i++){
             let child = divHand.children[i];
             if(child.classList.contains("active")){
@@ -379,22 +380,25 @@ function submitPlay(){
     }
 }
 
-function helloButton(){
-    console.log("hello");
-}
+// I don't think this is necessary anymore
+//function helloButton(){
+//    console.log("hello");
+//}
 
-
+// When a new play is received from the server, update the client with the information.
 function newPlayReceived(playObject){
-    // "playFromId": The playerId of the player who played the new cards
-    // "playerName": The playername of the player who played the cards
-    // "cardsPlayed": The cards played by the player
-    // "cardsOnTable": The cards on table after the play
-    // "validPlay": Is the play valid
-    // "nextId": The id of the next person to play
-    // "isBurn": is the play a burn
-    // "isFinished": is the game finished
-    // "passed": Did the player pass
+    // playObject info:
+    //   -"playFromId": The playerId of the player who played the new cards
+    //   -"playerName": The playername of the player who played the cards
+    //   -"cardsPlayed": The cards played by the player
+    //   -"cardsOnTable": The cards on table after the play
+    //   -"validPlay": Is the play valid
+    //   -"nextId": The id of the next person to play
+    //   -"isBurn": is the play a burn
+    //   -"isFinished": is the game finished
+    //   -"passed": Did the player pass
 
+    // If it is the clients turn, remove the cards from hand and draw the new hand.
     if(isTurn && playObject["playFromId"] == playerId){
         for(let i=0; i<playObject["cardsPlayed"].length;i++){
             for(let j=0;j<hand.length; j++){
@@ -409,33 +413,39 @@ function newPlayReceived(playObject){
         hand = hand.filter(n=>n)
         drawHand();
         disableHand();
+
     }else{
-        oponentId = playObject["playFromId"]
+        let oponentId = playObject["playFromId"]
         oponentHands[oponentId]["numCards"] = oponentHands[oponentId]["numCards"] - playObject["cardsPlayed"].length  
-        drawOponentCards(oponentId);    // The status text for the oponent is cleared when drawing the cards.
+
+        drawOponentCards(oponentId);    
+
+        // Clear all oponent statuses and update the status of the player who just played
         clearAllOponentStatus();
         opSeatId = "opStatus" + oponentHands[oponentId]["seat"];
         opStatus = document.getElementById(opSeatId);
-
         if(playObject["isBurn"]){
-            //opStatus.innerHTML = "Player(" + playObject["playFromId"] + ") BURNED!";
             opStatus.innerHTML = "BURN!";
         }else if(playObject["passed"]){
-            //pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") Passed!";
             opStatus.innerHTML = "Pass...";
         }else{
-            //pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") Played: " + playObject["play"];
             opStatus.innerHTML = "Played: " + playObject["play"];
         }
     }
-    // Set the turn to false because it was accepted
+
+    // isTurn is set to false because if it was the clients turn,
+    // and the new turn is the play it sent, then the play was valid
+    // and it is no longer the clients turn
     if(isTurn){
         isTurn = false;
     }
-    // Get the table text box and update.
+
+    // If the cards on the table did not change, do not update the cards on the table.
     if(cardsOnTable == playObject["cardsOntable"]){
         return
     }
+
+    // Update the cards on the table.
     cardsOnTable = playObject["cardsOnTable"];
     if (cardsOnTable.length == 0 && playObject["isBurn"] == false){
         clearTable();
@@ -449,28 +459,32 @@ function newPlayReceived(playObject){
     }else{
         addCardsToTable(cardsOnTable)
 
-    }
-
-    
-    
+    } 
 }
 
-function displayClientHello(){
-    let outputDiv = document.getElementById("gameDiv");
-    outputDiv.removeChild(outputDiv.firstChild);
-    li = document.createElement("li");
-    li.appendChild(document.createTextNode("ServerSaysHello"));
-    outputDiv.appendChild(li);
-}       
 
+
+// I don't think I need this anymore.
+//function displayClientHello(){
+//    let outputDiv = document.getElementById("gameDiv");
+//    outputDiv.removeChild(outputDiv.firstChild);
+//    li = document.createElement("li");
+//    li.appendChild(document.createTextNode("ServerSaysHello"));
+//    outputDiv.appendChild(li);
+//}       
+
+// When a game is finished, show the finish screen
 function gameFinished(standings){
     let gameDiv = document.getElementById("gameDiv");
     let titleHeader = document.getElementById("titleHeader");
     titleHeader.innerHTML = "Game Over!"
+    
+    // Clear the game div. (Should move this to function.)
     while(gameDiv.children.length > 0){
         gameDiv.removeChild(gameDiv.firstChild);
     }
 
+    // Create the standings ordered list.
     let standingsItem  = document.createElement("ol");
     for(let i=0;i<6;i++){
 
@@ -484,8 +498,6 @@ function gameFinished(standings){
     button.appendChild(document.createTextNode("New Game"))
     button.href = "/"
     gameDiv.appendChild(button);
-
-
 }
 
 
