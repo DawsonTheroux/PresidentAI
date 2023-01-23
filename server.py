@@ -3,13 +3,13 @@ from flask import render_template
 from flask_socketio import SocketIO, send, emit
 import os
 import time
-#import eventlet
+import eventlet
 from GameClass import Game
 
 
 app = Flask(__name__, template_folder="public")
 app.config["SECRET_KEY"] = 'ThisIsASecret?!'
-#eventlet.monkey_patch() 
+eventlet.monkey_patch() 
 socketio = SocketIO(app, logger=False, engineio_logger=False, manage_session=True)
 #socketio.numPlayers = 0
 #socketio.gameActive = False
@@ -225,8 +225,8 @@ def createApp():
     ssl_cert = "/etc/letsencrypt/live/dawsontheroux.ca/fullchain.pem"
     ssl_cert_key = "/etc/letsencrypt/live/dawsontheroux.ca/privkey.pem"
     context = (ssl_cert, ssl_cert_key)
-    #socketio.run(app, port=8081, debug=True, certfile=ssl_cert, keyfile=ssl_cert_key) 
-    socketio.run(app, port=8081, debug=True) 
+    socketio.run(app, port=8081, debug=True, certfile=ssl_cert, keyfile=ssl_cert_key) 
+    #socketio.run(app, port=8081, debug=True) 
     #return socketio
 
 
