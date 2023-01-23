@@ -257,16 +257,47 @@ class AIModelInterface:
         possiblePlaysEncoded = encodePlays(possiblePlays,1, oneHot=0)
         #print(f"Possible plays encoded {possiblePlaysEncoded}")
         if len(possiblePlays) == 0:
+            #print("retuning because no plays")
             return []
         #print(f"size of possiblePlays {possiblePlaysEncoded.shape}")
         cardsOnTableEncoded = encodePlays([cardsOnTable], 1, oneHot=0)
         encodedHand = self.encodeCardsInHand(player.hand)
         #print(f"size of cardsOnTable {cardsOnTableEncoded.shape}")
         #print(f"size of encoded played cards: {self.game.encodedPlayedCards}")
+
         encodedPlayers = np.zeros(6)
         for i in range(len(self.game.players)):
             encodedPlayers[i] = 1
-            
+
+        allPlayerIds = []
+        oponentNumCardsObj = {}
+        for p in self.game.players:
+            allPlayerIds.append(p.id)
+            oponentNumCardsObj[p.id] = np.hstack((np.ones(len(p.hand)), np.zeros(9-len(p.hand))))
+        
+        for p in self.game.standings:
+            allPlayerIds.append(p.id)
+            oponentNumCardsObj[p.id] = np.hstack((np.ones(len(p.hand)), np.zeros(9-len(p.hand))))
+        
+        #print(f"Total players found {len(allPlayerIds)}")     
+        currentPos = allPlayerIds.index(player.id)
+        playersSortedByCurrent = allPlayerIds[currentPos:] + allPlayerIds[:currentPos] # Get the ids where the first item is the current player
+
+        otherPlayersNumCards = np.empty(0)
+        #print("==")
+        #print(f"PlayerId: {player.id}")
+        for opId in playersSortedByCurrent:
+            if opId == player.id:
+                #print(f"({opId}): Other Player num cards: {oponentNumCardsObj[opId]}")
+                continue
+            if otherPlayersNumCards == np.empty(0):
+                otherPlayersNumCards = oponentNumCardsObj[opId]
+            else:
+                otherPlayersNumCards = np.hstack((otherPlayersNumCards, oponentNumCardsObj[opId]))
+            #print(f"({opId}): Other Player num cards: {oponentNumCardsObj[opId]}")
+
+
+
         if self.game.enableDropout:
             self.model.train()
         else:
@@ -281,7 +312,10 @@ class AIModelInterface:
         #print(f"cardsOnTable: {cardsOnTable}")
         #print(f"encodedCardsOnTable: {cardsOnTableEncoded}")
         #print(f"discardedCards: {self.game.encodedPlayedCards}")
-        data = np.hstack((encodedPlayers, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
+
+        #data = np.hstack((encodedPlayers, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
+        data = np.hstack((otherPlayersNumCards, encodedHand, cardsOnTableEncoded, self.game.encodedPlayedCards))
+
         with torch.no_grad():
             #print(f"data.shape {data.shape}")
             if device == "cpu":
