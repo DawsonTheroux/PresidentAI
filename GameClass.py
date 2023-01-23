@@ -182,8 +182,9 @@ class Game:
             if player.id in autoAsses:
                 scoreInfo[player.id]["score"] = 1
             else:
-                scoreInfo[player.id]["score"] = 6 - i
-            scoreInfo[player.id]["numPlays"] = 1
+                scoreInfo[player.id]["score"] = 7 - i
+            #scoreInfo[player.id]["numPlays"] = 1
+            scoreInfo[player.id]["cards"] = 9
             #TESTING
             #print(f"player:{player.id}: score: {6-i}")
         #for key in scoreInfo.keys():
@@ -194,9 +195,12 @@ class Game:
             if int(key) == key:
                 aiPlayerKeys.append(key)
 
-        for logObject in self.logArray:
-            if len(logObject["cardsPlayed"]) > 0:
-                scoreInfo[logObject["id"]]["numPlays"] += 1
+        sortedPlayerIds = list(scoreInfo.keys())
+        sortedPlayerIds.sort()
+
+        #for logObject in self.logArray:
+            #if len(logObject["cardsPlayed"]) > 0:
+                #scoreInfo[logObject["id"]]["numPlays"] += 1
 
         allCardsPlayed = []
         #allCardsEncoded = -np.ones(54)
@@ -210,8 +214,27 @@ class Game:
             
             playerScore = scoreInfo[logObject["id"]]["score"]
             #print(f"({logObject['id']}) Num Plays Left: {scoreInfo[logObject['id']]['numPlays']}")
-            #if len(logObject["cardsPlayed"]) > 0:
-                #scoreInfo[logObject["id"]]["numPlays"] -= 1
+            if len(logObject["cardsPlayed"]) > 0:
+                scoreInfo[logObject["id"]]["cards"] -= len(logObject["cardsPlayed"])
+
+            currentPos = sortedPlayerIds.index(logObject["id"])
+            playersSortedByCurrent = sortedPlayerIds[currentPos:] + sortedPlayerIds[:currentPos] # Get the ids where the first item is the current player
+            #print("==")
+            #print(f"PlayerId: {logObject['id']}")
+            oponentNumCards = np.empty(0)
+            for i in playersSortedByCurrent:
+                if i == logObject["id"]:
+                    continue
+                oponentCards = np.ones(scoreInfo[i]["cards"])
+                oponentCards = np.hstack((oponentCards, np.zeros(9-scoreInfo[i]["cards"])))
+                if oponentNumCards != np.empty(0):
+                    oponentNumCards = np.hstack((oponentNumCards, oponentCards))
+                else:
+                    oponentNumCards = oponentCards 
+                #print(f"Player: {i}") 
+                #print(f"Shape of oponentCards:{oponentCards.shape}")
+                #print(f"OponentCards: {oponentCards}")
+                #print(f"numCards: {scoreInfo[i]['cards']}")
 
 
             autoAssThisTurn = False
@@ -317,7 +340,8 @@ class Game:
             #if not (len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys) and (validPlay or autoAssThisTurn):
             #if validPlay or autoAssThisTurn:
                 #print("Including output!!")
-            outputRow = np.hstack((logObject["id"], logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
+            #outputRow = np.hstack((logObject["id"], logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
+            outputRow = np.hstack((logObject["id"], oponentNumCards, handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
             if len(outputArray) == 0:
                 outputArray = outputRow
             else:
@@ -614,21 +638,19 @@ if __name__ == "__main__":
 
     filename = f"testfile.csv"
     game_obj.outputLogToFile(filename)
-    '''
     gameMatrix = np.loadtxt(filename, delimiter = ",")
-    gameMatrix = gameMatrix.reshape((-1, 224))
+    gameMatrix = gameMatrix.reshape((-1, 263))
     for i in range(len(gameMatrix)):
         play = gameMatrix[i]
-        playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
+        playerID, oponentNumberOfcards, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 46, 100, 154, 208])
         print("Encoded Values:")
         print(f"PlayerID: {playerID}")
-        print(f"playersIn: {playersIn}")
+        print(f"oponentNumberOfCards: {oponentNumberOfcards}")
         print(f"cardsInHand: {cardsInHand}")
         print(f"cardsOnTable: {cardsOnTable}")
         print(f"cardsDiscarded: {cardsPlayed}")
         print(f"playChosen: {playChosen}")
         print("===========================================")
-    '''
     '''
     print("Decoded Values:")
     print(f"PlayerID: {playerID}")

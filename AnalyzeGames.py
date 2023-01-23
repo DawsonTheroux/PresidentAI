@@ -9,7 +9,8 @@ import threading
 
 def analyzePlay(play):
     #playersIn, possiblePlays, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [6, 60, 114, 168, 222])
-    playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
+    #playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
+    playerID, oponentNumberOfcards, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 46, 100, 154, 208])
     #print(f"Players in ({playersIn.shape}): {playersIn}")
     #print(f"possiblePlays({possiblePlays.shape}): {possiblePlays}")
     #print(f"cardsOnTable({cardsOnTable.shape}): {cardsOnTable}")
@@ -29,10 +30,10 @@ def analyzePlay(play):
             cardsInHandDecoded.append(cardAtIndex)
 
 
-    playerCount = 0
-    for i in range(len(playersIn)):
-        if playersIn[i] == 1:
-            playerCount += 1
+    #playerCount = 0
+    #for i in range(len(playersIn)):
+    #    if playersIn[i] == 1:
+    #        playerCount += 1
     
     '''
     possiblePlaysDecoded = []
@@ -58,7 +59,7 @@ def analyzePlay(play):
     outputString = ""
     outputString += f"----{playerID}:({playChosen[playChosenIndex]})-----:\n"
     outputString += f"Discarded Cards: {allCardsPlayed}\n"
-    outputString += f"Player Count: {playerCount}\n"
+    outputString += f"Other Player Cards: {oponentNumberOfcards}\n"
     outputString += f"Cards On Table: {cardsOnTableDecoded}\n"
     outputString += f"Cards in hand: {cardsInHandDecoded}\n"
     #outputString += f"PossiblePlays {possiblePlaysDecoded}\n"
@@ -72,7 +73,7 @@ def analyzeOutput(filename, outputFilename = None):
     #print(f"shapeTupple: {shapeTouple[0]}")
     #n = shapeTouple[0] / (55 + 168)
     #gameMatrix = gameMatrix.reshape((-1, 277))
-    gameMatrix = gameMatrix.reshape((-1, 224))
+    gameMatrix = gameMatrix.reshape((-1, 263))
     #print(gameMatrix.shape)
     #print(gameMatrix)
     outputString = ""
@@ -228,7 +229,7 @@ def generateOneThousandGames(threadId, model):
         if model == "random":
             game_obj = Game()
         else:
-            game_obj = Game(1, model)
+            game_obj = Game(2, model)
         if notSet:
             notSet = False
             dataset = game_obj.getTrainingData()
@@ -280,25 +281,42 @@ def generateGamesWithMultiThreading(model, numWorkers, outputPath, outputToFile)
 
 if __name__ == "__main__":
     evalModel = PresidentNet()
-    competatorModel = PresidentNet()
-    evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model6903_gen0_9.pt"
+    #competatorModel = PresidentNet()
+    evalModelPath = f".\\Models\\model6910_gen5_1.pt"
     evalModel.load_state_dict(torch.load(evalModelPath, map_location=torch.device('cpu')))
-    game_obj = Game(4, evalModel)
+
+    notFoundAss = True
+    #while notFoundAss:
+    #for i in range(1000):
+    game_obj = Game(2, evalModel)
     filename = f"testfile.csv"
     game_obj.outputLogToFile(filename)
-    gameMatrix = np.loadtxt(filename, delimiter = ",")
-    gameMatrix = gameMatrix.reshape((-1, 224))
-    for i in range(len(gameMatrix)):
-        play = gameMatrix[i]
-        playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
-        print("Encoded Values:")
-        print(f"PlayerID: {playerID}")
-        print(f"playersIn: {playersIn}")
-        print(f"cardsInHand: {cardsInHand}")
-        print(f"cardsOnTable: {cardsOnTable}")
-        print(f"cardsDiscarded: {cardsPlayed}")
-        print(f"playChosen: {playChosen}")
-        print("===========================================")
+    standings, autoAsses= game_obj.getResults()
+    if len(autoAsses) > 0:
+        notFoundAss = False
+        
+        
+    for i, player in enumerate(autoAsses):
+        print(f"Ass {i}: {player}")
+            
+        
+        #gameMatrix = np.loadtxt(filename, delimiter = ",")
+        #gameMatrix = gameMatrix.reshape((-1, 224))
+    analyzeOutput("testfile.csv", "analyzeAss.txt")
+    #for i in range(len(gameMatrix)):
+    #    
+    #    play = gameMatrix[i]
+    #    playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
+    #    if playerID != 42:
+    #        continue
+    #    print("Encoded Values:")
+    #    print(f"PlayerID: {playerID}")
+    #    print(f"playersIn: {playersIn}")
+    #    print(f"cardsInHand: {cardsInHand}")
+    #    print(f"cardsOnTable: {cardsOnTable}")
+    #    print(f"cardsDiscarded: {cardsPlayed}")
+    #    print(f"playChosen: {playChosen}")
+    #    print("===========================================")
 
 
     '''

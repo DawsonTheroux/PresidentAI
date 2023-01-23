@@ -13,7 +13,7 @@ class PresidentNet(nn.Module):
         self.dropout4 = nn.Dropout(0.5)
 
         self.layer1 = nn.Sequential(
-            nn.Linear(168,1024),
+            nn.Linear(207,1024),
             nn.ReLU()
             #nn.ELU()
         )
@@ -56,5 +56,6 @@ class PresidentNet(nn.Module):
         #print(f'x before:{x}')
         x = self.layer5(x)
         #print(f'x after:{x}')
-        output = F.relu6(x)
+        #output = F.log_softmax(x, dim=0)
+        output = F.relu6(x) + 1
         return output
