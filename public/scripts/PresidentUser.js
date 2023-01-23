@@ -200,7 +200,7 @@ function initializeOponentHands(){
     for(let i=2;i<7;i++){
         opStatus = document.createElement("p3");
         opStatus.id = "opStatus" + i;
-        opStatus.innerHTML = "opstatus"
+        opStatus.style.height="1.8em";
         opStatus.style.margin=0;
         opStatus.style.padding=0;
         divOpSeat = document.createElement("div");
@@ -235,7 +235,9 @@ function drawOponentCards(oponentId){
     console.log("Drawing cards for oponent: " + oponentId + " num cards: " + oponentId["numCards"]);
     oponentObj = oponentHands[oponentId];
     let divOpSeat = document.getElementById("opSeat" + oponentObj["seat"]);
-    console.log("Oponent(" + oponentId + ") Getting the seat: " + oponentObj["seat"])
+    let opSteat = document.getElementById("opStatus" + oponentObj["seat"]);
+    opSteat.innerHTML = " "
+    //console.log("Oponent(" + oponentId + ") Getting the seat: " + oponentObj["seat"])
 
     while(divOpSeat.children.length > 0){
         divOpSeat.removeChild(divOpSeat.firstChild);
@@ -254,14 +256,20 @@ function drawOponentCards(oponentId){
         divOpSeat.appendChild(iCard);
 
     }
+}
 
-
+function clearAllOponentStatus(){
+    for(key in oponentHands){
+        let opStatus = document.getElementById("opStatus" + oponentHands[key]["seat"])
+        opStatus.innerHTML = "\00 ";
+    }
 }
 
 function gameStarted(handObject){
     let gameDiv = document.getElementById("gameDiv");
     let titleHeader = document.getElementById("titleHeader");
-    titleHeader.innerHTML = "President (ID) " + playerId
+    //titleHeader.innerHTML = "President (ID) " + playerId
+    titleHeader.innerHTML = "President"
     while(gameDiv.children.length > 0){
         gameDiv.removeChild(gameDiv.firstChild);
     }
@@ -283,9 +291,9 @@ function gameStarted(handObject){
         oponentHands[i]["seat"] = seat;
         
     }
-    for(key in oponentHands){
-       console.log("Player(" + key + ") in seat: " + oponentHands[key]["seat"]);
-    }
+    //for(key in oponentHands){
+    //   console.log("Player(" + key + ") in seat: " + oponentHands[key]["seat"]);
+    //}
     initializeOponentHands();
     tableDiv = document.createElement("div");
     tableDiv.id = "divTable";
@@ -306,9 +314,10 @@ function gameStarted(handObject){
 
 
 
-    pStatus = document.createElement("p3");
-    pStatus.id = "pStatus";
-    gameDiv.appendChild(pStatus);
+    // This has been changed to have player statuses instead.
+    //pStatus = document.createElement("p3");
+    //pStatus.id = "pStatus";
+    //gameDiv.appendChild(pStatus);
 
 
     // Add the button to submit the play
@@ -332,9 +341,9 @@ function promptPlay(promptObj){
         return;
     }
     if(promptObj["notFirstAttempt"]){
-        alert("Play inputted is invalid, please try again")
-        let pStatus = document.getElementById("pStatus");
-        pStatus.innerHTML = "INAVLID PLAY, please try again"
+        //alert("Play inputted is invalid, please try again")
+        //let pStatus = document.getElementById("pStatus");
+        //pStatus.innerHTML = "INAVLID PLAY, please try again"
     }
     enableCards();
     let submitButton = document.getElementById("submitButton")
@@ -403,17 +412,21 @@ function newPlayReceived(playObject){
     }else{
         oponentId = playObject["playFromId"]
         oponentHands[oponentId]["numCards"] = oponentHands[oponentId]["numCards"] - playObject["cardsPlayed"].length  
-        drawOponentCards(oponentId)
+        drawOponentCards(oponentId);    // The status text for the oponent is cleared when drawing the cards.
+        clearAllOponentStatus();
+        opSeatId = "opStatus" + oponentHands[oponentId]["seat"];
+        opStatus = document.getElementById(opSeatId);
 
-    }
-
-    pStatus = document.getElementById("pStatus")
-    if(playObject["isBurn"]){
-        pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") BURNED!";
-    }else if(playObject["passed"]){
-        pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") Passed!";
-    }else{
-        pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") Played: " + playObject["play"];
+        if(playObject["isBurn"]){
+            //opStatus.innerHTML = "Player(" + playObject["playFromId"] + ") BURNED!";
+            opStatus.innerHTML = "BURN!";
+        }else if(playObject["passed"]){
+            //pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") Passed!";
+            opStatus.innerHTML = "Pass...";
+        }else{
+            //pStatus.innerHTML = "Player(" + playObject["playFromId"] + ") Played: " + playObject["play"];
+            opStatus.innerHTML = "Played: " + playObject["play"];
+        }
     }
     // Set the turn to false because it was accepted
     if(isTurn){

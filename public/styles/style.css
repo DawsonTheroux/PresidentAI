@@ -104,10 +104,10 @@ p3{
 
 .hand{
 	position: absolute;
-	height: 175px;
+	height: 225px;
 	width: 265.4px;
 	left:40%;
-	bottom:10%;
+	bottom:2%;
 }
 
 .card{
@@ -129,7 +129,7 @@ p3{
 
 .table{
 	position: absolute;
-	top: 20%;
+	top: 25%;
 	left:40%;
 	width: 185.4px;
 	height: 150px;
