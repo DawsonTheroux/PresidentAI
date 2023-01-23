@@ -258,7 +258,10 @@ class AIModelInterface:
         self.game = game
 
     def encodeCardsInHand(self, hand):
-        encodedHand = -np.ones(54)
+        # ONE HOT -1
+        #encodedHand = -np.ones(54)
+        # ONE HOT 0
+        encodedHand = np.zeros(54)
         for i, card in enumerate(hand):
             valueSet = False
             valueIndex = (card-1) * 4
@@ -273,7 +276,9 @@ class AIModelInterface:
 
     def promptCard(self, player, cardsOnTable):
         #print(f"Prompting AI player({player.id}) for a card")
-        device = "cpu"
+        
+        device = "cuda"
+        #device = "cpu"
         #print(f"({player.id}): Cards On Table: {cardsOnTable}")
         possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
         printObject  = {}
@@ -289,7 +294,7 @@ class AIModelInterface:
         #print(f"({player.id}): hand: {player.hand}")
         #print(f"Cards On Table: {cardsOnTable}")
         #print(f"PossiblePlays: {possiblePlays}")
-        possiblePlaysEncoded = encodePlays(possiblePlays,1)
+        possiblePlaysEncoded = encodePlays(possiblePlays,1, oneHot=0)
         #print(f"Possible plays encoded {possiblePlaysEncoded}")
         if len(possiblePlays) == 0:
             printObject["playSelected"] = []
@@ -300,15 +305,18 @@ class AIModelInterface:
             #print("--------------------------")
             return []
         #print(f"size of possiblePlays {possiblePlaysEncoded.shape}")
-        cardsOnTableEncoded = encodePlays([cardsOnTable], 1)
+        cardsOnTableEncoded = encodePlays([cardsOnTable], 1, oneHot=0)
         encodedHand = self.encodeCardsInHand(player.hand)
         #print(f"size of cardsOnTable {cardsOnTableEncoded.shape}")
         #print(f"size of encoded played cards: {self.game.encodedPlayedCards}")
-        encodedPlayers = -np.ones(6)
+        encodedPlayers = np.zeros(6)
         for i in range(len(self.game.players)):
             encodedPlayers[i] = 1
             
-        self.model.eval()
+        if self.game.enableDropout:
+            self.model.train()
+        else:
+            self.model.eval()
         
         # Data structuure: possiblePlayesEncoded(54), cardsOnTable, All cards enccoded(54)
         topPredsArr = []
@@ -336,6 +344,7 @@ class AIModelInterface:
 
 
         play = []
+        #print(f"possible plays: {possiblePlays}")
         #print(f"Redictions:{output}")
 
         if self.game.isTrainingDataGerneration:
@@ -365,7 +374,7 @@ class AIModelInterface:
                     else:
                         #print("Skipping Pass")
                         playNumber -= 1
-                elif possiblePlaysEncoded[predInd-1] != -1:
+                elif possiblePlaysEncoded[predInd-1] != 0:
                     if playNumber == 0:
                         play = candidate
                         break
@@ -380,7 +389,7 @@ class AIModelInterface:
                     candidate = decodePlay(predInd)
                     if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
                         break
-                    elif possiblePlaysEncoded[predInd-1] != -1:
+                    elif possiblePlaysEncoded[predInd-1] != 0:
                         play = candidate
                         break
                     
@@ -392,7 +401,7 @@ class AIModelInterface:
                 candidate = decodePlay(predInd)
                 if candidate == [] and len(cardsOnTable) != 0:#  and i == 0:
                     break
-                elif possiblePlaysEncoded[predInd-1] != -1:
+                elif possiblePlaysEncoded[predInd-1] != 0:
                     play = candidate
                     removeCardsFromHand(play,player)
                     break

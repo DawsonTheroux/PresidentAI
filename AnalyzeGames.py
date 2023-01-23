@@ -53,13 +53,6 @@ def analyzePlay(play):
     if playChosen[playChosenIndex] == 0:
         playChosenIndex = np.argmin(playChosen)
     positions = ["Ass", "Vice Ass", "Neutral2", "Neutral1", "Vice President", "President"]
-    position = -1
-    if playChosen[playChosenIndex] == -10:
-        position = "Auto Ass"
-    elif playChosen[playChosenIndex] > 0:
-        position = positions[int(playChosen[playChosenIndex] + 2)]
-    else:
-        position = positions[int(playChosen[playChosenIndex] + 3)]
     #position = positions[(int)(playChosen[playChosenIndex] - 1)]
     chosenPlay = decodePlay(playChosenIndex)
     outputString = ""
@@ -124,73 +117,73 @@ def calculateFitness(evalModel, competatorModel, numberOfGames = 500):
         #print(f"ResultsArray[0].id: {resultsArr[0].id}")
         if resultsArr[0].id in evalModelIds:
             if resultsArr[0].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness += 1
             evalModelPlacements["President"] += 1
         else:
             if resultsArr[0].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness += 1
 
         if resultsArr[1].id in evalModelIds:
             if resultsArr[1].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness += 1
             evalModelPlacements["VP"] += 1
         else:
             if resultsArr[1].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness += 1
         
         if resultsArr[2].id in evalModelIds:
             if resultsArr[2].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness += 1
             evalModelPlacements["Neutral1"] += 1
         else:
             if resultsArr[2].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness += 1
 
         if resultsArr[3].id in evalModelIds:
             if resultsArr[3].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness -= 1
             evalModelPlacements["Neutral2"] += 1
         else:
             if resultsArr[3].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness -= 1
 
         if resultsArr[4].id in evalModelIds:
             if resultsArr[4].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness -= 1
             evalModelPlacements["Vice Ass"] += 1
         else:
             if resultsArr[4].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness -= 1
 
         if resultsArr[5].id in evalModelIds:
             if resultsArr[5].id in autoAsses:
-                fitness -= 1
+                fitness -= 2
             else:
                 fitness -= 1
             evalModelPlacements["Ass"] += 1
         else:
             if resultsArr[5].id in autoAsses:
-                competatorFitness -= 1
+                competatorFitness -= 2
             else:
                 competatorFitness -= 1
         
@@ -286,6 +279,34 @@ def generateGamesWithMultiThreading(model, numWorkers, outputPath, outputToFile)
     return fullDataset
 
 if __name__ == "__main__":
+    evalModel = PresidentNet()
+    competatorModel = PresidentNet()
+    evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model6903_gen0_9.pt"
+    evalModel.load_state_dict(torch.load(evalModelPath, map_location=torch.device('cpu')))
+    game_obj = Game(4, evalModel)
+    filename = f"testfile.csv"
+    game_obj.outputLogToFile(filename)
+    gameMatrix = np.loadtxt(filename, delimiter = ",")
+    gameMatrix = gameMatrix.reshape((-1, 224))
+    for i in range(len(gameMatrix)):
+        play = gameMatrix[i]
+        playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
+        print("Encoded Values:")
+        print(f"PlayerID: {playerID}")
+        print(f"playersIn: {playersIn}")
+        print(f"cardsInHand: {cardsInHand}")
+        print(f"cardsOnTable: {cardsOnTable}")
+        print(f"cardsDiscarded: {cardsPlayed}")
+        print(f"playChosen: {playChosen}")
+        print("===========================================")
+
+
+    '''
+    if competatorModelPath != "random":
+        competatorModel.load_state_dict(torch.load(competatorModelPath, map_location=torch.device('cpu')))
+    else:
+        competatorModel = "random"
+    return calculateFitness(evalModel, competatorModel, numberOfGames)
 
     evalModelPath = f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model4000\\model4000_gen2_0.pt"
     competatorPath= f"D:\\school\\COMP3106\\Project\\PresidentAI\\Models\\model4001\\model4001_gen2_7.pt"
@@ -293,6 +314,7 @@ if __name__ == "__main__":
     for i in range(10):
         fitness, competatorFitness = modelFitnessFromFiles(evalModelPath, competatorPath, numberOfGamesVsModel)
         print(f"Fitness4000 {i}: {fitness} -- Competator Fitness40001: {competatorFitness}")
+    '''
 
     '''
     outputPath = "testfile.csv"

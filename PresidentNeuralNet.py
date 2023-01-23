@@ -6,8 +6,8 @@ import torch.nn.functional as F
 class PresidentNet(nn.Module):
     def __init__(self):
         super(PresidentNet, self).__init__()
-        self.dropout0 = nn.Dropout(0.2)
-        self.dropout1 = nn.Dropout(0.5)
+        self.dropout0 = nn.Dropout(0.05)
+        self.dropout1 = nn.Dropout(0.2)
         self.dropout2 = nn.Dropout(0.5)
         self.dropout3 = nn.Dropout(0.5)
         self.dropout4 = nn.Dropout(0.5)
@@ -32,11 +32,14 @@ class PresidentNet(nn.Module):
         self.layer4 = nn.Sequential(
             #nn.Dropout(0.5),
             nn.Linear(512, 256),
-            nn.Tanh()
+            nn.ReLU()
+            #nn.ELU()
+            #nn.Tanh()
             
         )
         self.layer5 = nn.Sequential(
             nn.Linear(256,55),
+            #nn.ReLU()
         )
        
 
@@ -50,6 +53,8 @@ class PresidentNet(nn.Module):
         x = self.dropout3(x)
         x = self.layer4(x)
         x = self.dropout4(x)
+        #print(f'x before:{x}')
         x = self.layer5(x)
-        output = F.log_softmax(x, dim=0)
+        #print(f'x after:{x}')
+        output = F.relu6(x)
         return output

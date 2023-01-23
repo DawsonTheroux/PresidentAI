@@ -11,10 +11,9 @@ import torch
 import sys
 
 
-# Disabled Auto Ass
-# Things to try: Randomize game playing to learn new strategies during game(1,model)
-# Implement a reinforcement learning with goal based reward.
-# Discard the last play since it is almost guarenteed.
+# NEXT:
+#   - Try and run the updated parameters without creating new training data in model.train() mode
+#       - Right now it is running in model.train() mode when generating new data to act as a pseudo random informed player
 
 class Game:
 
@@ -28,8 +27,9 @@ class Game:
         self.autoAss = []
         self.logArray = []
         self.isTrainingDataGerneration = False
+        self.enableDropout = False
         self.isWebsiteGame = False
-        self.encodedPlayedCards = -np.ones(54)
+        self.encodedPlayedCards = np.zeros(54)
         self.assignPlayers(gametype, model1, model2, numHumanPlayers, socketio)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
         if gametype != 6:
@@ -68,6 +68,8 @@ class Game:
 
         if gameType == 1: # All players a President model
             #self.isTrainingDataGerneration = True
+            self.isTrainingDataGerneration = False
+            self.enableDropout = False
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
             #for i in range(3):
@@ -141,7 +143,7 @@ class Game:
         #print(f"Hand Before Play({handBeforePlay})")
         #print("--")
 
-        encodedPlayers = -np.ones(6)
+        encodedPlayers = np.zeros(6)
         for i, player in enumerate(self.players):
             encodedPlayers[i] = 1
         logObject["encodedPlayersIn"] = encodedPlayers 
@@ -172,15 +174,20 @@ class Game:
             finalStandings.append(player)
         #for player in self.autoAss:
             #finalStandings.append(player)
+        _, autoAsses = self.getResults()
 
         scoreInfo = {}
         for i, player in enumerate(finalStandings):
             scoreInfo[player.id] = {}
-            if i <= 2:
-                scoreInfo[player.id]["score"] = 3 - i
+            if player.id in autoAsses:
+                scoreInfo[player.id]["score"] = 1
             else:
-                scoreInfo[player.id]["score"] = 2 - i
+                scoreInfo[player.id]["score"] = 6 - i
             scoreInfo[player.id]["numPlays"] = 1
+            #TESTING
+            #print(f"player:{player.id}: score: {6-i}")
+        #for key in scoreInfo.keys():
+            #print(f"PlayerId: {key} - Score: {scoreInfo[key]['score']}")
 
         aiPlayerKeys = []
         for key in scoreInfo.keys():
@@ -192,7 +199,8 @@ class Game:
                 scoreInfo[logObject["id"]]["numPlays"] += 1
 
         allCardsPlayed = []
-        allCardsEncoded = -np.ones(54)
+        #allCardsEncoded = -np.ones(54)
+        allCardsEncoded = np.zeros(54)
         
         for logObject in self.logArray:
             # Encode possible Plays 
@@ -205,19 +213,18 @@ class Game:
             #if len(logObject["cardsPlayed"]) > 0:
                 #scoreInfo[logObject["id"]]["numPlays"] -= 1
 
-            '''
-            print(f"Cards In OnTable: {logObject['cardsOnTable']}")
-            print(f"Cards Player:{logObject['cardsPlayed']}")
-            print(f"PlayerHand: {logObject['cardsInHand']}")
-            print(f"discardedCards: {allCardsPlayed}")
-            print('------')
-            '''
 
             autoAssThisTurn = False
             #possiblePlaysEncoded = encodePlays(logObject["possiblePlays"], 1)
-            cardsOntable = encodePlays([logObject["cardsOnTable"]], 1)
+            # ENCODED AS -1
+            #cardsOntable = encodePlays([logObject["cardsOnTable"]], 1)
+            # ENCODED AS 0
+            cardsOntable = encodePlays([logObject["cardsOnTable"]], value=1, oneHot=0)
 
-            handEncoded = -np.ones(54)
+            # ENCODED AS -1
+            #handEncoded = -np.ones(54)
+            # ENCODED AS 0
+            handEncoded = np.zeros(54)
             for card in logObject["cardsInHand"]:
                 handEncoded = self.encodeCardInPlayed(card, handEncoded)
             
@@ -263,17 +270,25 @@ class Game:
                         nonPowerCardsInHand.remove(nonPowerCard)
                         break
                 
+            #print(f"---Player id({logObject['id']}----")
             numberOfNonPowerCardsInHandAfter = len(nonPowerCardsInHand)
             # If after the play nonPowercards in hand 
             # THe play must not result in an empty hand
             if numberOfNonPowerCardsInHandBefore != 0 and numberOfNonPowerCardsInHandAfter == 0 and len(logObject["cardsPlayed"]) != len(logObject["cardsInHand"]):
                 #scoreInfo[logObject["id"]]["score"] = -10
-                playerScore = -4
+                playerScore = 1
                 autoAssThisTurn = True
+                if playerPass[0] != 0:
+                    playerPass = [1]
             
             # THe play must not result in an empty hand
             if numberOfNonPowerCardsInHandBefore == 0:
+                playerScore = 1
                 validPlay = False
+                if playerPass[0] != 0:
+                    playerPass = [1]
+            #print(f"auto ass this turn: {autoAssThisTurn}")
+            #print(f"Valid Play: {validPlay}")
             
             
 
@@ -282,28 +297,45 @@ class Game:
             #print(f"autoAssThisTurn: {autoAssThisTurn}") 
             #print(f"Adding to data: {validPlay or autoAssThisTurn}")
             #print("----")
-            cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore, 0)
+            cardsPlayedEncoded = encodePlays([logObject["cardsPlayed"]], playerScore, oneHot=0 )
             
             # Only add Row if:
             # - If there is a mix of AI and Random, only add AI ids.
             # - If the player got autoAss this turn add it. or it was a regular play
-            if not (len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys) and (validPlay or autoAssThisTurn):
-                outputRow = np.hstack((logObject["id"], logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
-                if len(outputArray) == 0:
-                    outputArray = outputRow
-                else:
-                    #outputArray = np.vstack((outputArray, outputRow))
-                    #outputArray = np.vstack((outputRow, outputArray))
-                    outputArray = np.vstack((outputArray,outputRow))
+
+            # TESTING
+            #print(f"Players in encoded: {logObject['encodedPlayersIn']}")
+            #print(f"PlayerHand: {np.sort(logObject['cardsInHand'])}")
+            #print(f"Encoded PlayerHand: {handEncoded}")
+            #print(f"Cards In OnTable: {logObject['cardsOnTable']}")
+            #print(f"Encoded Cards In OnTable: {cardsOntable}")
+            #print(f"discardedCards: {allCardsPlayed}")
+            #print(f"Encoded discardedCards: {allCardsEncoded}")
+            #print(f"PlayerPass:{playerPass}")
+            #print(f"Cards Player:{logObject['cardsPlayed']}")
+            #print(f"Encoded Cards Player:{cardsPlayedEncoded}")
+            #if not (len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys) and (validPlay or autoAssThisTurn):
+            #if validPlay or autoAssThisTurn:
+                #print("Including output!!")
+            outputRow = np.hstack((logObject["id"], logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
+            if len(outputArray) == 0:
+                outputArray = outputRow
+            else:
+                #outputArray = np.vstack((outputArray, outputRow))
+                #outputArray = np.vstack((outputRow, outputArray))
+                outputArray = np.vstack((outputArray,outputRow))
+
+            #input()
+            #print('======================================')
+            #input()
+
+            # Encode the all the cards in the cards played.
 
             # Add the cards to the cards played after the row has been added.
             for card in logObject["cardsPlayed"]:
                 allCardsEncoded = self.encodeCardInPlayed(card, allCardsEncoded)
                 allCardsPlayed.append(card)
             allCardsPlayed.sort()
-
-            # Encode the all the cards in the cards played.
-
         return outputArray
 
 
@@ -568,10 +600,44 @@ class Game:
 
 
 if __name__ == "__main__":
-    model = PresidentNet()
-    model.load_state_dict(torch.load("Models\\model8000_gen7_17.pt", map_location=torch.device('cpu')))
-    game_obj = Game(4, model)
+    '''
+    for i in range(1000):
+        if i % 100 == 0:
+            print(f"Game: {i}")
+        game_obj = Game()
+        filename = f"GameLogs/gameFile{i}.csv"
+        game_obj.outputLogToFile(filename)
+        dataTable = game_obj.getTrainingData()
+    '''
 
+    game_obj = Game()
+
+    filename = f"testfile.csv"
+    game_obj.outputLogToFile(filename)
+    '''
+    gameMatrix = np.loadtxt(filename, delimiter = ",")
+    gameMatrix = gameMatrix.reshape((-1, 224))
+    for i in range(len(gameMatrix)):
+        play = gameMatrix[i]
+        playerID, playersIn, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 7, 61, 115, 169])
+        print("Encoded Values:")
+        print(f"PlayerID: {playerID}")
+        print(f"playersIn: {playersIn}")
+        print(f"cardsInHand: {cardsInHand}")
+        print(f"cardsOnTable: {cardsOnTable}")
+        print(f"cardsDiscarded: {cardsPlayed}")
+        print(f"playChosen: {playChosen}")
+        print("===========================================")
+    '''
+    '''
+    print("Decoded Values:")
+    print(f"PlayerID: {playerID}")
+    print(f"playersIn: {playersIn}")
+    print(f"cardsInHand: {cardsInHand}")
+    print(f"cardsOnTable: {cardsOnTable}")
+    print(f"cardsPlayed: {cardsPlayed}")
+    print(f"playChosen: {playChosen}")
+    '''
     
 
 
