@@ -7,6 +7,7 @@ hand = []                   // The cards in your hand
 cardsOnTable = []           // The cards on the table
 isTurn = false;             // Is it the clients turn
 oponentHands = {}           // Object with oponent information like numcards, their seats, etc.
+CARD_NAMES= {'1': 'spades_4', '2': 'spades_2', '3': 'spades_3', '4': 'spades_5', '5': 'spades_6', '6': 'spades_7', '7':'spades_8', '8': 'spades_9', '9': 'spades_10', '10': 'spades_jack', '11':'spades_queen', '12':'spades_king','13':'spades_ace', '14':'joker_black'};
 
 
 // Once the users name has been inputted, the socket is created
@@ -107,13 +108,16 @@ function drawHand(){
     // Go through all the cards and draw them.
     for(let i=0;i<hand.length;i++){
         card = ""
-        cardNames = {'14' : 'joker_black', '1': 'spades_ace', '11': 'spades_jack', '12': 'spades_queen', '13': 'spades_king'}
+        // To fix Ace high, 14 joker, 2=2, 3=3, 1=4, 5-13= -1, 13=A, 12=K, 11=
+        let cardEncoded = hand[i];
+        //cardNames = {'14' : 'joker_black', '1': 'spades_ace', '11': 'spades_jack', '12': 'spades_queen', '13': 'spades_king'}
+        card = CARD_NAMES[hand[i]] + ".svg"
 
-        if(hand[i] in cardNames){
-            card = cardNames[hand[i]] +  ".svg"
-        }else{
-            card = "spades_" + hand[i] + ".svg"
-        }
+        //if(hand[i] in cardNames){
+        //    card = cardNames[hand[i]] +  ".svg"
+        //}else{
+        //    card = "spades_" + hand[i] + ".svg"
+        //}
 
         // Create the HTML for the card.
         iCard = document.createElement("img");
@@ -149,12 +153,13 @@ function addCardsToTable(cardsToAdd){
     let left = 10; // The amount that the cards are shifted when creating the overlap
     for(let i=0;i<cardsToAdd.length;i++){
         let card = ""
-        cardNames = {'14' : 'joker_black', '1': 'spades_ace', '11': 'spades_jack', '12': 'spades_queen', '13': 'spades_king'}
-        if(cardsToAdd[i] in cardNames){
-            card = cardNames[cardsToAdd[i]] +  ".svg"
-        }else{
-            card = "spades_" + cardsToAdd[i] + ".svg"
-        }
+        card = CARD_NAMES[cardsToAdd[i]] + ".svg";
+        //cardNames = {'14' : 'joker_black', '1': 'spades_ace', '11': 'spades_jack', '12': 'spades_queen', '13': 'spades_king'}
+        //if(cardsToAdd[i] in cardNames){
+        //    card = cardNames[cardsToAdd[i]] +  ".svg"
+        //}else{
+        //    card = "spades_" + cardsToAdd[i] + ".svg"
+        //}
 
         // Create HTML for the card.
         iCard = document.createElement("img");

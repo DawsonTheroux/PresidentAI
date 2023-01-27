@@ -69,7 +69,7 @@ class Game:
         if gameType == 1: # All players a President model
             #self.isTrainingDataGerneration = True
             self.isTrainingDataGerneration = False
-            self.enableDropout = False 
+            self.enableDropout = True
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
             #for i in range(3):
@@ -471,7 +471,31 @@ class Game:
         self.turnId = self.players[0].id
         initObject = {}
         for player in self.players:
-            initObject[player.id] = np.sort(player.hand).tolist()
+            #initObject[player.id] = np.sort(player.hand).tolist()
+            tempHand = np.sort(player.hand)
+            numTwos = np.count_nonzero(tempHand == 2)
+            numThrees= np.count_nonzero(tempHand == 3)
+            numJokers= np.count_nonzero(tempHand == 14)
+            tempHand = tempHand[tempHand != 2]
+            tempHand = tempHand[tempHand != 3]
+            tempHand = tempHand[tempHand != 14]
+            for i in range(numTwos):
+                print(f"Appending 2 for player {player.id}")
+                tempHand = np.append(tempHand, 2)
+            for i in range(numThrees):
+                #tempHand.append(3)
+                print(f"Appending 3 {player.id}")
+                tempHand = np.append(tempHand, 3)
+            for i in range(numJokers):
+                #tempHand.append(14)
+                print(f"Appending 14 {player.id}")
+                tempHand = np.append(tempHand, 14)
+            initObject[player.id] = np.flip(tempHand).tolist()
+
+            
+            
+            
+            
     
         firstPlay = {}
         firstPlay["cardsOnTable"] = []

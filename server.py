@@ -3,14 +3,14 @@ from flask import render_template
 from flask_socketio import SocketIO, send, emit, join_room, leave_room
 import os
 import time
-#import eventlet
+import eventlet
 from GameClass import Game
 import uuid
 
 
 app = Flask(__name__, template_folder="public")
 app.config["SECRET_KEY"] = 'ThisIsASecret?!'
-#eventlet.monkey_patch()  # This allows socket emits happen in the middle of functions
+eventlet.monkey_patch()  # This allows socket emits happen in the middle of functions
 socketio = SocketIO(app, logger=False, engineio_logger=False, manage_session=True)
 socketio.gamesInfo = {}
 socketio.playerGameMap = {}
