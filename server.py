@@ -1,10 +1,11 @@
 from flask import Flask, Response, request
 from flask import render_template
-from flask_socketio import SocketIO, send, emit
+from flask_socketio import SocketIO, send, emit, join_room, leave_room
 import os
 import time
 #import eventlet
 from GameClass import Game
+import uuid
 
 
 app = Flask(__name__, template_folder="public")
@@ -12,6 +13,7 @@ app.config["SECRET_KEY"] = 'ThisIsASecret?!'
 #eventlet.monkey_patch()  # This allows socket emits happen in the middle of functions
 socketio = SocketIO(app, logger=False, engineio_logger=False, manage_session=True)
 socketio.gamesInfo = {}
+socketio.playerGameMap = {}
 
 
 @app.route("/", methods=["GET"])
@@ -63,19 +65,39 @@ def endConnection():
 def joinGame(playerName):  
 
     sid=request.sid
-    socketio.gamesInfo[sid] = {}
-    socketio.gamesInfo[sid]["numPlayers"] = 1
-    socketio.gamesInfo[sid]["numPlayers"] = 1
-    socketio.gamesInfo[sid]["players"] = {}
-    socketio.gamesInfo[sid]["players"][sid] = {}
-    socketio.gamesInfo[sid]["players"][sid]["name"] = playerName
-    socketio.gamesInfo[sid]["players"][sid]["id"] = 1
-    emit("gameJoined", socketio.gamesInfo[sid]["numPlayers"], broadcast = True)
+    foundAvailableGame = False
+    for gameId in socketio.gamesInfo.keys():
+        if socketio.gamesInfo[gameId]["isStarted"] == False:
+            foundAvailableGame = True
+            socketio.playerGameMap[sid] = gameId
+            join_room(gameId)
+            socketio.gamesInfo[gameId]["numPlayers"] += 1
+            socketio.gamesInfo[gameId]["players"][sid] = {}
+            socketio.gamesInfo[gameId]["players"][sid]["name"] = playerName
+            socketio.gamesInfo[gameId]["players"][sid]["id"] = socketio.gamesInfo[gameId]["numPlayers"]
+            emit("gameJoined", socketio.gamesInfo[gameId]["numPlayers"], room=gameId)
+            return
+
+    # If a game has not been found then generate a new game.
+    gameId = uuid.uuid4()
+    join_room(gameId)
+    print(f"generated UUID {gameId}")
+    socketio.playerGameMap[sid] = gameId 
+    socketio.gamesInfo[gameId] = {}
+    socketio.gamesInfo[gameId]["isStarted"] = False
+    socketio.gamesInfo[gameId]["numPlayers"] = 1
+    socketio.gamesInfo[gameId]["players"] = {}
+    socketio.gamesInfo[gameId]["players"][sid] = {}
+    socketio.gamesInfo[gameId]["players"][sid]["name"] = playerName
+    socketio.gamesInfo[gameId]["players"][sid]["id"] = 1
+    emit("gameJoined", socketio.gamesInfo[gameId]["numPlayers"], room=gameId)
+    
 
 
 @socketio.on('startGame')
 def startGame():
     requestSid = request.sid
+    gameId = socketio.playerGameMap[requestSid]
     firstPlayObj = {}
     firstPlayObj["playFromId"] = -1
     firstPlayObj["playerName"] = None
@@ -86,17 +108,18 @@ def startGame():
     firstPlayObj["isFinished"] = False
     firstPlayObj["passed"] = False
 
-    emit("gamePending", broadcast = True) 
-    
+    emit("gamePending") # removed broadcast from here
+    socketio.gamesInfo[gameId]["isStarted"] = True
     # Deal cards and initilize variables
-    game_obj = Game(6, numHumanPlayers=socketio.gamesInfo[requestSid]["numPlayers"], socketio=socketio)
+    game_obj = Game(6, numHumanPlayers=socketio.gamesInfo[gameId]["numPlayers"], socketio=socketio)
 
     # Get the init object
     initObject = game_obj.initSocketGame()
-    socketio.gamesInfo[requestSid]["gameObj"] = game_obj
+    socketio.gamesInfo[gameId]["gameObj"] = game_obj
 
-    emit("gameStarted", initObject)
-    emit("promptPlay", {"playerId" : 1, "notFirstAttempt": False}) # Prompt the first player for their lead
+    print(f"initObject {initObject}")
+    emit("gameStarted", initObject, room = gameId)
+    emit("promptPlay", {"playerId" : 1, "notFirstAttempt": False}, room=gameId) # Prompt the first player for their lead
 
 
 # When a client emits that they have selected a play
@@ -107,8 +130,9 @@ def receivePlay(playObj):
     #   - "playerId": The id who submitted the play
     #   - "play": The play that was submitted
     requestSid = request.sid
+    gameId = socketio.playerGameMap[requestSid]
 
-    if playObj["playerId"] != socketio.gamesInfo[requestSid]["gameObj"].turnId:
+    if playObj["playerId"] != socketio.gamesInfo[gameId]["gameObj"].turnId:
         print("**An invalid player tried to submit a turn")
         return
 
@@ -117,26 +141,26 @@ def receivePlay(playObj):
     #   "playFromId": the id who played last
     #   "cardsPlayed": Cards played by the last player
     #   "NextId": The id of the next player to play
-    stepObj = socketio.gamesInfo[requestSid]["gameObj"].socketGameStep(playObj, True)
+    stepObj = socketio.gamesInfo[gameId]["gameObj"].socketGameStep(playObj, True)
 
     # reprompt the player and return if the play selected was invalid
     if stepObj["validPlay"] == False:
         print(f"+=+=+=+INVALID PLAY: Refrompting {playObj['playerId']}")
-        emit("promptPlay", {"playerId": playObj["playerId" ], "notFirstAttempt": True})
+        emit("promptPlay", {"playerId": playObj["playerId" ], "notFirstAttempt": True}, room=gameId)
         return
     
-    emit("newPlay", stepObj, broadcast=True)
+    emit("newPlay", stepObj, room=gameId)
 
     # This will need to be updated for multiplayer
-    isSocketPlayer = stepObj["nextId"] == 1
+    isSocketPlayer = stepObj["nextId"] <= socketio.gamesInfo[gameId]["numPlayers"]
 
     if stepObj["isFinished"]:
         gameFinished()
         return
 
     while not isSocketPlayer:
-        stepObj = socketio.gamesInfo[requestSid]["gameObj"].socketGameStep(None, False)
-        emit("newPlay", stepObj, broadcast=True)
+        stepObj = socketio.gamesInfo[gameId]["gameObj"].socketGameStep(None, False)
+        emit("newPlay", stepObj, room=gameId)
         time.sleep(0.75)
 
         if stepObj["isFinished"]:
@@ -144,9 +168,10 @@ def receivePlay(playObj):
             return
 
         # This will need to be updated for multiplayer
-        isSocketPlayer = stepObj["nextId"] == 1
+        isSocketPlayer = stepObj["nextId"] <= socketio.gamesInfo[gameId]["numPlayers"]
+        #isSocketPlayer = stepObj["nextId"] == 1
 
-    emit("promptPlay", {"playerId" : stepObj["nextId"], "notFirstAttempt": False})
+    emit("promptPlay", {"playerId" : stepObj["nextId"], "notFirstAttempt": False}, room=gameId)
 
 
 # When a game finishes:
@@ -154,26 +179,27 @@ def receivePlay(playObj):
 # - Delete variables that are no longer used.
 def gameFinished():
     requestSid = request.sid
+    gameId = socketio.playerGameMap[requestSid]
     positions = ["President", "Vice President", "Neutral 1", "Neutral 2", "Vice Ass", "Ass"]
 
-    results, autoAssIds = socketio.gamesInfo[requestSid]["gameObj"].getResults()
+    results, autoAssIds = socketio.gamesInfo[gameId]["gameObj"].getResults()
 
     standings = []
     for i, player in enumerate(results):
         result = {}
         result["id"] = player.id
 
-        if player.id == 1: # This will need to be changed for multiplayer
-            result["name"] = socketio.gamesInfo[requestSid]["players"][requestSid]["name"]
+        if player.id <= socketio.gamesInfo[gameId]["numPlayers"]: # This will need to be changed for multiplayer
+            result["name"] = socketio.gamesInfo[gameId]["players"][requestSid]["name"]
         else:
             result["name"] = f"AI ({player.id})"
 
         result["position"] = positions[i]
         standings.append(result)
     
-    emit("gameFinished", standings, broadcast = True)
+    emit("gameFinished", standings, room=gameId)
     
-    del socketio.gamesInfo[requestSid]
+    del socketio.gamesInfo[gameId]
     
 # I don't think this is necessary anymore.
 #@socketio.on('helloServer')

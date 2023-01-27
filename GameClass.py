@@ -6,7 +6,7 @@ import copy
 from CardInterfaces import getPossiblePlays, removeCardsFromHand
 from CardInterfaces import encodePlays
 from PresidentNeuralNet import PresidentNet
-from flask_socketio import SocketIO, send, emit
+#from flask_socketio import SocketIO, send, emit
 import torch
 import sys
 
@@ -69,7 +69,7 @@ class Game:
         if gameType == 1: # All players a President model
             #self.isTrainingDataGerneration = True
             self.isTrainingDataGerneration = False
-            self.enableDropout = False
+            self.enableDropout = False 
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
             #for i in range(3):
@@ -99,9 +99,12 @@ class Game:
             model1.load_state_dict(torch.load("Models/websiteModel.pt", map_location=torch.device('cpu')))
             self.isWebsiteGame = True
             self.socketio = socketio
-            self.players.append(PlayerModule.Player(3, 1, socketio=socketio)) 
-            for i in range(5):
-                self.players.append(PlayerModule.Player(2,i + 2, model1, self))
+            for i in range(numHumanPlayers):
+                print(f"Generating human player ID: {i + 1}")
+                self.players.append(PlayerModule.Player(3, i + 1, socketio=socketio)) 
+            for i in range(numHumanPlayers, 6):
+                print(f"Generating AI player ID: {i + 1}")
+                self.players.append(PlayerModule.Player(2,i + 1, model1, self))
 
             
         
@@ -476,6 +479,8 @@ class Game:
         firstPlay["cardsPlayed"] = 0
         firstPlay["nextId"] = 1
         
+        print(f"First Play: {firstPlay}")
+        print(f"initbject: {initObject}")
         return initObject, firstPlay 
     
 

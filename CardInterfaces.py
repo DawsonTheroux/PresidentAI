@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import copy
 import sys
-from flask_socketio import SocketIO, send, emit, call
+#from flask_socketio import SocketIO, send, emit, call
 #from GameClass import encodePlays
 
 
@@ -41,6 +41,7 @@ class CommandLineInterface:
 class SocketInterface:
     # Prompts the command line to enter a card.
     
+    '''
     def promptCard(self, player, cardsOnTable):
         cardNotChosen = True
         tempHand = player.hand.copy()
@@ -59,6 +60,7 @@ class SocketInterface:
         player.socketio.on("submitPlay", receivePlay)
         call("promptPlay", player.id)
         print("After promptcard call")
+        '''
         #while playFromSocket == None:
             #player.socketio.on("submitPlay", receivePlay)
         
@@ -281,10 +283,10 @@ class AIModelInterface:
         device = "cpu"
         #print(f"({player.id}): Cards On Table: {cardsOnTable}")
         possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
-        printObject  = {}
-        printObject["playerID"] = player.id
-        printObject["cardsOnTable"] = cardsOnTable
-        printObject["playerHand"] = np.sort(player.hand).tolist()
+        #printObject  = {}
+        #printObject["playerID"] = player.id
+        #printObject["cardsOnTable"] = cardsOnTable
+        #printObject["playerHand"] = np.sort(player.hand).tolist()
 
         #print(f"Player({player.id})")
         #print(f"  The cards on Table {cardsOnTable}")
@@ -435,9 +437,9 @@ class AIModelInterface:
         #print(f"  Play Selected: {play}")
         #input()
         #print("--------------------------")
-        printObject["playSelected"] = play
-        print(printObject)
-        sys.stdout.flush()
+        #printObject["playSelected"] = play
+        #print(printObject)
+        #sys.stdout.flush()
         #print(f"({player.id})Candidate: {candidate} - {predInd}")
         #print(f"({player.id})possiblePlaysEncoded: {possiblePlaysEncoded} - {predInd}")
         #print(f'({player.id})Playing: {play}') 

@@ -24,7 +24,7 @@ function joinGame(){
         socket.on("promptPlay", promptPlay);
         socket.on("newPlay", newPlayReceived);
         socket.on("gameFinished", gameFinished);
-        socket.emit("joinGame", playerName);
+        socket.emit("joinGame", plaroom=playerName);
     }
 }
 
@@ -32,10 +32,13 @@ function joinGame(){
 // Draw the waiting room HTML 
 function joinWaitingRoom(numPlayers){
     if(joinedWaitingRoom){
+        console.log("playerId: " + playerId)
         playersString = document.getElementById("waitingLi");
         playersString.innerHTML = "Waiting for other players... (" + numPlayers + "/6)"; 
     }else{
+        joinedWaitingRoom = true;
         playerId = numPlayers;
+        console.log("setting playerId: " + playerId)
         let gameDiv = document.getElementById("gameDiv");
 
         // Clear the gamediv.
@@ -59,6 +62,7 @@ function joinWaitingRoom(numPlayers){
 
 // Emite that the game has started (onlick of waiting room button)
 function startTheGame(){
+    joinedWaitingRoom = false 
     socket.emit("startGame")
 }
 
@@ -218,6 +222,11 @@ function initializeOponentHands(){
         divOpSeat.append(divOpHand);
         
         gameDiv.appendChild(divOpSeat);
+    }
+    for(let i=1;i<7;i++){
+        if(i === playerId){
+            continue
+        }
         drawOponentCards(i);  // Addds the corrent number of card back images to each oponents hand div
     }
 }
@@ -237,6 +246,9 @@ function getSeat(oponentId){
 function drawOponentCards(oponentId){
     let cardPath = "img/playingCards/"
     let oponentObj = oponentHands[oponentId];
+    console.log("Drawing seat for oponents: " + oponentId)
+    console.log("Seat for that oponent: " + oponentObj["seat"])
+
     let divOpSeat = document.getElementById("opSeat" + oponentObj["seat"]);
     let opSteat = document.getElementById("opStatus" + oponentObj["seat"]);
     opSteat.innerHTML = ""
@@ -287,6 +299,8 @@ function gameStarted(handObject){
             continue;
         }
         seat = getSeat(i);
+        console.log("seat:" + seat + " for oponent: " + i)
+
         oponentHands[i] = {};
         oponentHands[i]["numCards"] = handObject[i].length;
         oponentHands[i]["seat"] = seat;
