@@ -86,6 +86,7 @@ function gamePending(){
 
 // When a card is selected add the "active" class so that it is translated 10px up.
 function cardSelected(){
+    console.log("Card selected");
     if(this.classList.contains("active")){
         this.classList.remove("active");
     }else if(this.classList.contains("disabled") == false){
@@ -120,15 +121,21 @@ function drawHand(){
         //}
 
         // Create the HTML for the card.
+        cardContainer = document.createElement("div");
+        cardContainer.classList.add("card-container");
+        cardContainer.cardValue = hand[i]
+        //cardContainer.classList.add("card");
+        cardContainer.onclick = cardSelected;
         iCard = document.createElement("img");
         iCard.classList.add("card");
         iCard.src = cardPath + card;
-        iCard.style.left= left + "px";
-        iCard.onclick = cardSelected;
-        iCard.cardValue = hand[i];
-        left += 20;
+        //iCard.style.left= left + "px";
+        //iCard.onclick = cardSelected;
+        //iCard.cardValue = hand[i];
+        //left += 20;
+        cardContainer.appendChild(iCard);
         
-        divHand.appendChild(iCard);
+        divHand.appendChild(cardContainer);
 
     }
 }
@@ -162,17 +169,19 @@ function addCardsToTable(cardsToAdd){
         //}
 
         // Create HTML for the card.
+        cardContainer = document.createElement("div");
+        cardContainer.classList.add("card-container");
         iCard = document.createElement("img");
         iCard.classList.add("card");
         iCard.classList.add("display");
         iCard.src = cardPath + card;
-        iCard.style.left= left + "px";
-        iCard.onclick = cardSelected;
+        //iCard.style.left= left + "px";
+        //iCard.onclick = cardSelected;
         iCard.cardValue = cardsToAdd[i];
-        iCard.style.transform = "rotate(-4deg);"
-        left += 20;
-        
-        divTable.appendChild(iCard);
+        //iCard.style.transform = "rotate(-4deg);"
+        //left += 20;
+        cardContainer.appendChild(iCard); 
+        divTable.appendChild(cardContainer);
     }
 }
 
@@ -206,7 +215,7 @@ function enableCards(){
 // Initialize the display elements of the oponent hands
 // - This includes the cards themselves and the status'
 function initializeOponentHands(){
-    gameDiv = document.getElementById("gameDiv")
+    let gameDiv = document.getElementById("presidentDiv")
     for(let i=2;i<7;i++){
         // Generate the status paragraph for the oponent
         opStatus = document.createElement("p3");
@@ -290,6 +299,11 @@ function clearAllOponentStatus(){
 // Initialize all of the game HTML elements with the object given by the server.
 function gameStarted(handObject){
     let gameDiv = document.getElementById("gameDiv");
+    let presidentDiv = document.createElement("div");
+    presidentDiv.classList.add("presidentGame");
+    presidentDiv.id = "presidentDiv";
+    //gameDiv.classList.remove("gameDiv");
+    //gameDiv.classList.add("presidentGame");
     let titleHeader = document.getElementById("titleHeader");
     titleHeader.innerHTML = "President";
 
@@ -312,20 +326,25 @@ function gameStarted(handObject){
         
     }
 
+    gameDiv.appendChild(presidentDiv);
     initializeOponentHands();  // Add all the elements to the oponent hands. 
 
     // Create the div that holds the Table cards.
     tableDiv = document.createElement("div");
     tableDiv.id = "divTable";
     tableDiv.classList.add("table");
-    gameDiv.appendChild(tableDiv);
+    //gameDiv.appendChild(tableDiv);
+    presidentDiv.appendChild(tableDiv);
 
     // Create the div that client play area.
     hand = handObject[playerId]
     let playerArea = document.createElement("div");
+    playerArea.classList.add("playerArea");
+    
+
     let divHand = document.createElement("div");
     divHand.id = "divHand";
-    playerArea.classList.add("hand");
+    divHand.classList.add("hand");
     playerArea.appendChild(divHand);
     gameDiv.appendChild(playerArea);
 
@@ -339,9 +358,6 @@ function gameStarted(handObject){
     button.onclick = submitPlay;
     button.id = "submitButton"
     button.disabled = true;
-    button.style.position="absolute"
-    button.style.bottom="0px"
-    button.style.left="40%;"
     playerArea.appendChild(button)
 }
 
@@ -373,6 +389,7 @@ function promptPlay(promptObj){
 
 // Submit the play selected by the client by emitting the "playSelected" event.
 // NOTE: This only works when it is the clients turn.
+// The cards are selected by getting all the "active" cards from the hand CSS
 function submitPlay(){
     if(isTurn){
         let playObject={}

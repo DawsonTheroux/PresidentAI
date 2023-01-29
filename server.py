@@ -159,9 +159,9 @@ def receivePlay(playObj):
         return
 
     while not isSocketPlayer:
+        time.sleep(1.5)
         stepObj = socketio.gamesInfo[gameId]["gameObj"].socketGameStep(None, False)
         emit("newPlay", stepObj, room=gameId)
-        time.sleep(0.75)
 
         if stepObj["isFinished"]:
             gameFinished()

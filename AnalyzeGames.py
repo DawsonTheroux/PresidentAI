@@ -346,6 +346,7 @@ if __name__ == "__main__":
         print(f"{placements[i]}: {player.id}")
     
     '''
+    '''
     game = Game(1, model)
     outputData2 = game.getTrainingData()
     outputData = np.vstack((outputData1, outputData2))

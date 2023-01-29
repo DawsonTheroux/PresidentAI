@@ -69,7 +69,7 @@ class Game:
         if gameType == 1: # All players a President model
             #self.isTrainingDataGerneration = True
             self.isTrainingDataGerneration = False
-            self.enableDropout = True
+            self.enableDropout = False 
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
             #for i in range(3):
