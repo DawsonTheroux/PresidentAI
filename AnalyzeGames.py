@@ -229,7 +229,7 @@ def generateOneThousandGames(threadId, model):
         if model == "random":
             game_obj = Game()
         else:
-            game_obj = Game(2, model)
+            game_obj = Game(1, model)
         if notSet:
             notSet = False
             dataset = game_obj.getTrainingData()
@@ -280,6 +280,51 @@ def generateGamesWithMultiThreading(model, numWorkers, outputPath, outputToFile)
     return fullDataset
 
 if __name__ == "__main__":
+    #testArr = np.array([[1,2,3,4], [5,6,7,8]])
+    #print(f"test arr before: {testArr}")
+    #print(f"test arr before: {testArr.shape}")
+    #np.random.shuffle(testArr)
+    #print(f"test arr After: {testArr}")
+    #print(f"test arr After: {testArr.shape}")
+
+    #evalModelPath = f"C:\\Users\\User\\Documents\\PresidentAI\\Models\\websiteModel.pt"
+    #competatorPath= f"C:\\Users\\User\\Documents\\PresidentAI\\Models\\model6925_gen22_9.pt"
+    #numberOfGamesVsModel = 500
+    #for i in range(10):
+    #    fitness, competatorFitness = modelFitnessFromFiles(evalModelPath, competatorPath, numberOfGamesVsModel)
+    #    print(f"WesiteModel {i}: {fitness} -- Competator model6925: {competatorFitness}")
+    while(True):
+        game_obj = Game(0)
+        results, autoAss = game_obj.getResults()
+        if len(autoAss) > 0:
+            break
+
+    game_obj.getTrainingData()
+    print(f"Standings:")
+    for i, player in enumerate(results):
+        print(player.id)
+
+    print("AutoAsses:")
+    for i, player in enumerate(autoAss):
+        print(player)
+
+
+    #evalModel = PresidentNet()
+    #evalModelPath = f".\\Models\\websiteModel.pt"
+    #evalModel.load_state_dict(torch.load(evalModelPath, map_location=torch.device('cpu')))
+    #newModel = PresidentNet()
+    #newModelPath = f".\\Models\\model6927_gen6_14.pt"
+    #newModel.load_state_dict(torch.load(evalModelPath, map_location=torch.device('cpu')))
+    ##dataset = generateGamesWithMultiThreading(evalModel, evalModel2, 15, "none", False)
+    #dataset = generateOneThousandGames("1", evalModel)
+    #print(f" {np.array(range(int(np.ceil(dataset.shape[0] / 2))))}")
+    ##print(f"List of indexes to delete {np.array(range(np.ceil(dataset.shape[0] / 2))).as_type(int).tolist()}")
+    #print(f"Dataset shape before: {dataset.shape}")
+    #dataset = np.delete(dataset,  np.array(range(int(np.ceil(dataset.shape[0] / 2)))), 0)
+    #print(f"Dataset shape after: {dataset.shape}")
+
+    # 6967 6 14
+    '''
     evalModel = PresidentNet()
     #competatorModel = PresidentNet()
     evalModelPath = f".\\Models\\model6910_gen5_1.pt"
@@ -303,6 +348,7 @@ if __name__ == "__main__":
         #gameMatrix = np.loadtxt(filename, delimiter = ",")
         #gameMatrix = gameMatrix.reshape((-1, 224))
     analyzeOutput("testfile.csv", "analyzeAss.txt")
+    '''
     #for i in range(len(gameMatrix)):
     #    
     #    play = gameMatrix[i]
