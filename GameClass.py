@@ -72,8 +72,7 @@ class Game:
             self.enableDropout = False 
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
-            #for i in range(3):
-                #self.players.append(PlayerModule.Player(1, i)) 
+                #self.players.append(PlayerModule.Player(2,i + 0.1, model2, self)) 
         elif gameType == 2: # All players are model.
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
@@ -276,24 +275,24 @@ class Game:
             # If the hand has only power cards after the play, then set the score to -10.
 
             validPlay = True
-            # Find all the non-powercards in the hand.
-            #print(f"Hand: {logObject['cardsInHand']}")
+
+            # Create an array of all the non-powercards in the players hand
             nonPowerCardsInHand = []
             for card in logObject["cardsInHand"]:
                 if card != 2 and card != 3 and card != 14:
                     nonPowerCardsInHand.append(card)
-            #print(f"None Powercards in hand: {nonPowerCardsInHand}")
 
 
+            # If the list of non-powercardsInHand is 0, then there are only powercards
             onlyPowerCardsInHand = len(nonPowerCardsInHand) == 0 # If there are only power cards in the users hand
-            #print(f"Only powerCardsInHand? : {onlyPowerCardsInHand}")
 
             numberOfNonPowerCardsInHandBefore = len(nonPowerCardsInHand)
+
             # Remove all the cards from the play from nonPowercards in hand.    
             for card in logObject["cardsPlayed"]:
                 for nonPowerCard in nonPowerCardsInHand:
                     if card == nonPowerCard:
-                        nonPowerCardsInHand.remove(nonPowerCard)
+                        nonPowerCardsInHand.remove(nonPowerCard) # I suspect this is removing all instances of the card
                         break
                 
             #print(f"---Player id({logObject['id']}----")
@@ -302,20 +301,19 @@ class Game:
             # THe play must not result in an empty hand
             if numberOfNonPowerCardsInHandBefore != 0 and numberOfNonPowerCardsInHandAfter == 0 and len(logObject["cardsPlayed"]) != len(logObject["cardsInHand"]):
                 #scoreInfo[logObject["id"]]["score"] = -10
-                playerScore = 1
                 autoAssThisTurn = True
                 if playerPass[0] != 0:
                     playerPass = [1]
             
             # THe play must not result in an empty hand
             if numberOfNonPowerCardsInHandBefore == 0:
-                playerScore = 1
                 validPlay = False
                 if playerPass[0] != 0:
                     playerPass = [1]
             #print(f"auto ass this turn: {autoAssThisTurn}")
             #print(f"Valid Play: {validPlay}")
             
+            # If there are powercards in your hand and there are no non-powercards, then you are autoass
             
 
             #print(f"Play: {logObject['cardsPlayed']}")
@@ -341,16 +339,14 @@ class Game:
             #print(f"Cards Player:{logObject['cardsPlayed']}")
             #print(f"Encoded Cards Player:{cardsPlayedEncoded}")
             #if not (len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys) and (validPlay or autoAssThisTurn):
-            #if validPlay or autoAssThisTurn:
-                #print("Including output!!")
-            #outputRow = np.hstack((logObject["id"], logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
-            outputRow = np.hstack((logObject["id"], oponentNumCards, handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
-            if len(outputArray) == 0:
-                outputArray = outputRow
-            else:
-                #outputArray = np.vstack((outputArray, outputRow))
-                #outputArray = np.vstack((outputRow, outputArray))
-                outputArray = np.vstack((outputArray,outputRow))
+            if (playerScore == 1 and (not validPlay or autoAssThisTurn)) or (playerScore != 1 and validPlay):
+                outputRow = np.hstack((logObject["id"], oponentNumCards, handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
+                if len(outputArray) == 0:
+                    outputArray = outputRow
+                else:
+                    #outputArray = np.vstack((outputArray, outputRow))
+                    #outputArray = np.vstack((outputRow, outputArray))
+                    outputArray = np.vstack((outputArray,outputRow))
 
             #input()
             #print('======================================')
@@ -662,24 +658,26 @@ if __name__ == "__main__":
         game_obj.outputLogToFile(filename)
         dataTable = game_obj.getTrainingData()
     '''
+    #a = [1,1,2,3,4,5]
+    #a.remove(1)
+    #print(f"{a}")
+    #game_obj = Game()
 
-    game_obj = Game()
-
-    filename = f"testfile.csv"
-    game_obj.outputLogToFile(filename)
-    gameMatrix = np.loadtxt(filename, delimiter = ",")
-    gameMatrix = gameMatrix.reshape((-1, 263))
-    for i in range(len(gameMatrix)):
-        play = gameMatrix[i]
-        playerID, oponentNumberOfcards, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 46, 100, 154, 208])
-        print("Encoded Values:")
-        print(f"PlayerID: {playerID}")
-        print(f"oponentNumberOfCards: {oponentNumberOfcards}")
-        print(f"cardsInHand: {cardsInHand}")
-        print(f"cardsOnTable: {cardsOnTable}")
-        print(f"cardsDiscarded: {cardsPlayed}")
-        print(f"playChosen: {playChosen}")
-        print("===========================================")
+    #filename = f"testfile.csv"
+    #game_obj.outputLogToFile(filename)
+    #gameMatrix = np.loadtxt(filename, delimiter = ",")
+    #gameMatrix = gameMatrix.reshape((-1, 263))
+    #for i in range(len(gameMatrix)):
+    #    play = gameMatrix[i]
+    #    playerID, oponentNumberOfcards, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 46, 100, 154, 208])
+    #    print("Encoded Values:")
+    #    print(f"PlayerID: {playerID}")
+    #    print(f"oponentNumberOfCards: {oponentNumberOfcards}")
+    #    print(f"cardsInHand: {cardsInHand}")
+    #    print(f"cardsOnTable: {cardsOnTable}")
+    #    print(f"cardsDiscarded: {cardsPlayed}")
+    #    print(f"playChosen: {playChosen}")
+    #    print("===========================================")
     '''
     print("Decoded Values:")
     print(f"PlayerID: {playerID}")
