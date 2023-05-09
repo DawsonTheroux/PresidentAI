@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
+
 # Define neural network model
 class PresidentNet(nn.Module):
     def __init__(self):
@@ -15,31 +16,21 @@ class PresidentNet(nn.Module):
         self.layer1 = nn.Sequential(
             nn.Linear(207,1024),
             nn.ReLU()
-            #nn.ELU()
         )
         self.layer2 = nn.Sequential(
-            #nn.Dropout(0.5),
             nn.Linear(1024, 1024), 
             nn.ReLU()
-            #nn.ELU()
         )
         self.layer3 = nn.Sequential(
-            #nn.Dropout(0.5),
             nn.Linear(1024,512),
             nn.ReLU()
-            #nn.ELU()
         )
         self.layer4 = nn.Sequential(
-            #nn.Dropout(0.5),
             nn.Linear(512, 256),
             nn.ReLU()
-            #nn.ELU()
-            #nn.Tanh()
-            
         )
         self.layer5 = nn.Sequential(
             nn.Linear(256,55),
-            #nn.ReLU()
         )
        
 
@@ -53,9 +44,6 @@ class PresidentNet(nn.Module):
         x = self.dropout3(x)
         x = self.layer4(x)
         x = self.dropout4(x)
-        #print(f'x before:{x}')
         x = self.layer5(x)
-        #print(f'x after:{x}')
-        #output = F.log_softmax(x, dim=0)
         output = F.relu6(x) + 1
         return output
