@@ -3,8 +3,12 @@ import numpy as np
 import pandas as pd
 import os
 import copy
-from CardInterfaces import getPossiblePlays
+from CardInterfaces import getPossiblePlays, removeCardsFromHand
 from CardInterfaces import encodePlays
+from PresidentNeuralNet import PresidentNet
+#from flask_socketio import SocketIO, send, emit
+import torch
+import sys
 
 
 # NEXT:
@@ -13,7 +17,7 @@ from CardInterfaces import encodePlays
 
 class Game:
 
-    def __init__(self, gametype=0, model1=None, model2=None):
+    def __init__(self, gametype=0, model1=None, model2=None, numHumanPlayers=None, socketio=None):
         self.players = []
         self.cards = []
         self.cardsPlayed = []
@@ -24,10 +28,12 @@ class Game:
         self.logArray = []
         self.isTrainingDataGerneration = False
         self.enableDropout = False
+        self.isWebsiteGame = False
         self.encodedPlayedCards = np.zeros(54)
-        self.assignPlayers(gametype, model1, model2)    # This will set self.players array to Player Objects.
+        self.assignPlayers(gametype, model1, model2, numHumanPlayers, socketio)    # This will set self.players array to Player Objects.
         self.dealCards()        # Sets the Player.hand attribute
-        self.gameLoop()
+        if gametype != 6:
+            self.gameLoop()
 
 
     def dealCards(self):
@@ -58,16 +64,15 @@ class Game:
         #for player in self.players:
             #print(f"player({player.id}): {player.hand}")
 
-    def assignPlayers(self, gameType=0, model1=None, model2=None):
+    def assignPlayers(self, gameType=0, model1=None, model2=None, numHumanPlayers=None, socketio=None):
 
         if gameType == 1: # All players a President model
             #self.isTrainingDataGerneration = True
             self.isTrainingDataGerneration = False
-            self.enableDropout = False
+            self.enableDropout = False 
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
-            #for i in range(3):
-                #self.players.append(PlayerModule.Player(1, i)) 
+                #self.players.append(PlayerModule.Player(2,i + 0.1, model2, self)) 
         elif gameType == 2: # All players are model.
             for i in range(6):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
@@ -83,11 +88,24 @@ class Game:
         elif gameType == 4:
             self.players.append(PlayerModule.Player(0, 42)) # Right now this is generating all CMD line players
             for i in range(5): #self.players.append(PlayerModule.Player(0, i)) # Right now this is generating all CMD line players else:
-                    self.players.append(PlayerModule.Player(1, i)) # Right now this is generating all CMD line players
+                    self.players.append(PlayerModule.Player(2, i, model1, self)) # Right now this is generating all CMD line players
         elif gameType == 5: #Evaluate Model
             for i in range(3):
                 self.players.append(PlayerModule.Player(2,i, model1, self))
                 self.players.append(PlayerModule.Player(2,i + 0.1, model2, self))
+        elif gameType == 6:
+            model1 = PresidentNet()
+            model1.load_state_dict(torch.load("Models/websiteModel.pt", map_location=torch.device('cpu')))
+            self.isWebsiteGame = True
+            self.socketio = socketio
+            for i in range(numHumanPlayers):
+                print(f"Generating human player ID: {i + 1}")
+                self.players.append(PlayerModule.Player(3, i + 1, socketio=socketio)) 
+            for i in range(numHumanPlayers, 6):
+                print(f"Generating AI player ID: {i + 1}")
+                self.players.append(PlayerModule.Player(2,i + 1, model1, self))
+
+            
         
 
     def getResults(self):
@@ -257,24 +275,24 @@ class Game:
             # If the hand has only power cards after the play, then set the score to -10.
 
             validPlay = True
-            # Find all the non-powercards in the hand.
-            #print(f"Hand: {logObject['cardsInHand']}")
+
+            # Create an array of all the non-powercards in the players hand
             nonPowerCardsInHand = []
             for card in logObject["cardsInHand"]:
                 if card != 2 and card != 3 and card != 14:
                     nonPowerCardsInHand.append(card)
-            #print(f"None Powercards in hand: {nonPowerCardsInHand}")
 
 
+            # If the list of non-powercardsInHand is 0, then there are only powercards
             onlyPowerCardsInHand = len(nonPowerCardsInHand) == 0 # If there are only power cards in the users hand
-            #print(f"Only powerCardsInHand? : {onlyPowerCardsInHand}")
 
             numberOfNonPowerCardsInHandBefore = len(nonPowerCardsInHand)
+
             # Remove all the cards from the play from nonPowercards in hand.    
             for card in logObject["cardsPlayed"]:
                 for nonPowerCard in nonPowerCardsInHand:
                     if card == nonPowerCard:
-                        nonPowerCardsInHand.remove(nonPowerCard)
+                        nonPowerCardsInHand.remove(nonPowerCard) # I suspect this is removing all instances of the card
                         break
                 
             #print(f"---Player id({logObject['id']}----")
@@ -283,20 +301,19 @@ class Game:
             # THe play must not result in an empty hand
             if numberOfNonPowerCardsInHandBefore != 0 and numberOfNonPowerCardsInHandAfter == 0 and len(logObject["cardsPlayed"]) != len(logObject["cardsInHand"]):
                 #scoreInfo[logObject["id"]]["score"] = -10
-                playerScore = 1
                 autoAssThisTurn = True
                 if playerPass[0] != 0:
                     playerPass = [1]
             
             # THe play must not result in an empty hand
             if numberOfNonPowerCardsInHandBefore == 0:
-                playerScore = 1
                 validPlay = False
                 if playerPass[0] != 0:
                     playerPass = [1]
             #print(f"auto ass this turn: {autoAssThisTurn}")
             #print(f"Valid Play: {validPlay}")
             
+            # If there are powercards in your hand and there are no non-powercards, then you are autoass
             
 
             #print(f"Play: {logObject['cardsPlayed']}")
@@ -322,16 +339,14 @@ class Game:
             #print(f"Cards Player:{logObject['cardsPlayed']}")
             #print(f"Encoded Cards Player:{cardsPlayedEncoded}")
             #if not (len(aiPlayerKeys) > 0 and logObject["id"] not in aiPlayerKeys) and (validPlay or autoAssThisTurn):
-            #if validPlay or autoAssThisTurn:
-                #print("Including output!!")
-            #outputRow = np.hstack((logObject["id"], logObject["encodedPlayersIn"], handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
-            outputRow = np.hstack((logObject["id"], oponentNumCards, handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
-            if len(outputArray) == 0:
-                outputArray = outputRow
-            else:
-                #outputArray = np.vstack((outputArray, outputRow))
-                #outputArray = np.vstack((outputRow, outputArray))
-                outputArray = np.vstack((outputArray,outputRow))
+            if (playerScore == 1 and (not validPlay or autoAssThisTurn)) or (playerScore != 1 and validPlay):
+                outputRow = np.hstack((logObject["id"], oponentNumCards, handEncoded, cardsOntable, allCardsEncoded, playerPass, cardsPlayedEncoded))
+                if len(outputArray) == 0:
+                    outputArray = outputRow
+                else:
+                    #outputArray = np.vstack((outputArray, outputRow))
+                    #outputArray = np.vstack((outputRow, outputArray))
+                    outputArray = np.vstack((outputArray,outputRow))
 
             #input()
             #print('======================================')
@@ -357,6 +372,14 @@ class Game:
         turnIndex = 0
         gameOver = False
         lastPlayedIsFinished = False
+        handObject = {}
+        for player in self.players:
+            handObject[player.id] = np.sort(player.hand).tolist()
+        
+
+        # Removed because it is now in the server side.
+        #emit("gameStarted", handObject)
+
         # One loop is one players turn
         while not gameOver:
             isBurn = False
@@ -369,6 +392,17 @@ class Game:
             possiblePlays = getPossiblePlays(self.players[turnIndex].hand, self.cardsOnTable)
             cardsToPlay = self.players[turnIndex].promptCard(self.cardsOnTable)
             self.logPlay(cardsToPlay, possiblePlays, self.players[turnIndex].id, self.players[turnIndex].playedHand, handBeforePlay)
+            # newPlay Object:
+            #   - PlayerID of person who played
+            #   - Playername of the person who played
+            #   - Cards played
+            #   - Cards on table after
+
+            # This is removed because socketIO is moved to new functions.
+            #newPlay = {}
+            #newPlay["playerID"] = self.players[turnIndex].id
+            #newPlay["playerName"] = self.socketio.players[self.players[turnIndex].id]["name"]
+            #newPlay["cardsPlayed"] = cardsToPlay
 
             # Add all the cards to the played cards list.
             for card in cardsToPlay: 
@@ -409,6 +443,8 @@ class Game:
                     gameOver = True 
                     break
                 
+            #newPlay["cardsOnTable"] = self.cardsOnTable
+            #emit("newPlay", newPlay)
             self.playCards(cardsToPlay)
 
             if len(self.players) == 1:
@@ -423,6 +459,170 @@ class Game:
                 turnIndex = turnIndex % len(self.players)
 
         #results = self.printResults() 
+
+    def initSocketGame(self):
+        self.turnIndex = 0
+        self.gameOver = False
+        self.lastPlayedIsFinished = False
+        self.turnId = self.players[0].id
+        initObject = {}
+        for player in self.players:
+            #initObject[player.id] = np.sort(player.hand).tolist()
+            tempHand = np.sort(player.hand)
+            numTwos = np.count_nonzero(tempHand == 2)
+            numThrees= np.count_nonzero(tempHand == 3)
+            numJokers= np.count_nonzero(tempHand == 14)
+            tempHand = tempHand[tempHand != 2]
+            tempHand = tempHand[tempHand != 3]
+            tempHand = tempHand[tempHand != 14]
+            for i in range(numTwos):
+                print(f"Appending 2 for player {player.id}")
+                tempHand = np.append(tempHand, 2)
+            for i in range(numThrees):
+                #tempHand.append(3)
+                print(f"Appending 3 {player.id}")
+                tempHand = np.append(tempHand, 3)
+            for i in range(numJokers):
+                #tempHand.append(14)
+                print(f"Appending 14 {player.id}")
+                tempHand = np.append(tempHand, 14)
+            initObject[player.id] = np.flip(tempHand).tolist()
+
+            
+            
+            
+            
+    
+        firstPlay = {}
+        firstPlay["cardsOnTable"] = []
+        firstPlay["playFromId"] = -1
+        firstPlay["cardsPlayed"] = 0
+        firstPlay["nextId"] = 1
+        
+        print(f"First Play: {firstPlay}")
+        print(f"initbject: {initObject}")
+        return initObject, firstPlay 
+    
+
+    def socketGameStep(self, playObj, isSocket):
+        # Returns stepObj:
+        #   - "cardsOnTable": Cards on table after the play
+        #   - "playFromID": ID of the player who played the play
+        #   - "cardsPlayed": cards played by the player"
+        #   - "NextID"
+        #   - "isBurn"
+        #   - "isFinished"
+        #   - "passed"
+
+        isBurn = False
+        isFinished = False
+        passed = False
+        stepObj = {}
+        stepObj["validPlay"] = True
+            
+        cardOnTablePrior = self.cardsOnTable
+        # prompt the player at player index for a card.
+        handBeforePlay = copy.deepcopy(self.players[self.turnIndex].hand)
+        possiblePlays = getPossiblePlays(self.players[self.turnIndex].hand, self.cardsOnTable)
+
+        # TODO: Change this so that prompt play can take in 
+        #          play selected and determine if it valid.
+        #           This will also allow the prompt play to deal with removing the cards.
+        if not isSocket:
+            cardsToPlay = self.players[self.turnIndex].promptCard(self.cardsOnTable)
+            stepObj["play"] = cardsToPlay
+            stepObj["playFromId"] = self.turnId
+            stepObj["cardsPlayed"] = cardsToPlay
+            stepObj["playFromId"] = self.turnId
+        else:
+            play = playObj["play"].split(",")
+            play = [eval(i) for i in play] # convert the play to int
+            if play in possiblePlays or (len(play) == 1 and play[0] == 0):
+                if play[0] == 0:
+                    play = []
+                cardsToPlay = play
+                removeCardsFromHand(cardsToPlay, self.players[self.turnIndex])
+                stepObj["play"] = cardsToPlay
+                stepObj["playFromId"] = self.turnId
+                stepObj["cardsPlayed"] = cardsToPlay
+            else:
+                stepObj["validPlay"] = False
+                print("Invalid play selected")
+                return stepObj
+        self.logPlay(cardsToPlay, possiblePlays, self.players[self.turnIndex].id, self.players[self.turnIndex].playedHand, handBeforePlay)
+        # newPlay Object:
+        #   - PlayerID of person who played
+        #   - Playername of the person who played
+        #   - Cards played
+        #   - Cards on table after
+
+        # This is removed because socketIO is moved to new functions.
+        #newPlay = {}
+        #newPlay["playerID"] = self.players[turnIndex].id
+        #newPlay["playerName"] = self.socketio.players[self.players[turnIndex].id]["name"]
+        #newPlay["cardsPlayed"] = cardsToPlay
+
+        # Add all the cards to the played cards list.
+        for card in cardsToPlay: 
+            self.cardsPlayed.append(card)
+            
+        if len(cardsToPlay) == 0: # The player passed
+            #print("The player has passed")
+            self.passedPlayers.append(self.players[self.turnIndex])
+            passed = True
+
+            if (self.lastPlayedIsFinished and (len(self.passedPlayers) == len(self.players))) or (not self.lastPlayedIsFinished and  (len(self.passedPlayers) == len(self.players) - 1)):
+                self.lastPlayedIsFinished = False
+                #print("All players have passed")
+                self.cardsOnTable = []
+                self.resetPlayers()
+                self.passedPlayers = []
+        else: 
+            if len(self.cardsOnTable) != 0 and cardsToPlay[0] == self.cardsOnTable[0]:
+                self.lastPlayedIsFinished = False
+                self.passedPlayers = []
+                self.resetPlayers()
+                self.cardsOnTable = []
+                isBurn = True
+            else:
+                self.lastPlayedIsFinished = False
+                self.passedPlayers = []
+                self.cardsOnTable = cardsToPlay
+            
+            if len(self.players[self.turnIndex].hand) == 0:
+                if 2 in cardsToPlay or 3 in cardsToPlay or 14 in cardsToPlay: # The player is autoAss for finishing on a powercard
+                    self.autoAss.append(self.players[self.turnIndex])
+                self.standings.append(self.players[self.turnIndex])
+                self.lastPlayedIsFinished = True
+                self.players.pop(self.turnIndex)
+
+            if len(self.players) == 1:
+                self.standings.append(self.players[0])
+                self.gameOver = True 
+        
+        #newPlay["cardsOnTable"] = self.cardsOnTable
+        #emit("newPlay", newPlay)
+        self.playCards(cardsToPlay)
+        stepObj["cardsOnTable"] = self.cardsOnTable
+
+        if len(self.players) == 1:
+            self.turnIndex = 0
+        elif isBurn and not self.lastPlayedIsFinished:
+            self.turnIndex = (self.turnIndex) % len(self.players)
+        elif isBurn and self.lastPlayedIsFinished:
+            self.turnIndex = ((self.turnIndex % len(self.players))) % len(self.players)
+        elif not self.lastPlayedIsFinished or passed:
+            self.turnIndex = (self.turnIndex + 1) % len(self.players)
+        else: 
+            self.turnIndex = self.turnIndex % len(self.players)
+
+        self.turnId = self.players[self.turnIndex].id
+        stepObj["nextId"] = self.turnId
+        stepObj["isBurn"] = isBurn
+        stepObj["isFinished"] = self.gameOver 
+        stepObj["passed"] = passed
+        return stepObj
+
 
 #def encodePlays(plays, value):
 #    # Singles(14) go from 0-14
@@ -458,24 +658,26 @@ if __name__ == "__main__":
         game_obj.outputLogToFile(filename)
         dataTable = game_obj.getTrainingData()
     '''
+    #a = [1,1,2,3,4,5]
+    #a.remove(1)
+    #print(f"{a}")
+    #game_obj = Game()
 
-    game_obj = Game()
-
-    filename = f"testfile.csv"
-    game_obj.outputLogToFile(filename)
-    gameMatrix = np.loadtxt(filename, delimiter = ",")
-    gameMatrix = gameMatrix.reshape((-1, 263))
-    for i in range(len(gameMatrix)):
-        play = gameMatrix[i]
-        playerID, oponentNumberOfcards, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 46, 100, 154, 208])
-        print("Encoded Values:")
-        print(f"PlayerID: {playerID}")
-        print(f"oponentNumberOfCards: {oponentNumberOfcards}")
-        print(f"cardsInHand: {cardsInHand}")
-        print(f"cardsOnTable: {cardsOnTable}")
-        print(f"cardsDiscarded: {cardsPlayed}")
-        print(f"playChosen: {playChosen}")
-        print("===========================================")
+    #filename = f"testfile.csv"
+    #game_obj.outputLogToFile(filename)
+    #gameMatrix = np.loadtxt(filename, delimiter = ",")
+    #gameMatrix = gameMatrix.reshape((-1, 263))
+    #for i in range(len(gameMatrix)):
+    #    play = gameMatrix[i]
+    #    playerID, oponentNumberOfcards, cardsInHand, cardsOnTable, cardsPlayed, playChosen = np.split(play, [1, 46, 100, 154, 208])
+    #    print("Encoded Values:")
+    #    print(f"PlayerID: {playerID}")
+    #    print(f"oponentNumberOfCards: {oponentNumberOfcards}")
+    #    print(f"cardsInHand: {cardsInHand}")
+    #    print(f"cardsOnTable: {cardsOnTable}")
+    #    print(f"cardsDiscarded: {cardsPlayed}")
+    #    print(f"playChosen: {playChosen}")
+    #    print("===========================================")
     '''
     print("Decoded Values:")
     print(f"PlayerID: {playerID}")

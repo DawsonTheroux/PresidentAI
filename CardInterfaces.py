@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 import copy
+import sys
+#from flask_socketio import SocketIO, send, emit, call
 #from GameClass import encodePlays
 
 
@@ -9,8 +11,8 @@ class CommandLineInterface:
     def promptCard(self, player, cardsOnTable):
         cardNotChosen = True
         tempHand = player.hand.copy()
-        print(getPossiblePlays(player.hand, cardsOnTable))
         while cardNotChosen:
+            #userInput = input(f"  Player({player.id}) Please choose a card: {np.sort(player.hand)}: ").split(',')
             print(f" The cards on Table {cardsOnTable}")
             userInput = input(f"Player({player.id}) Please choose a card: {np.sort(player.hand)}: ").split(',')
 
@@ -34,6 +36,37 @@ class CommandLineInterface:
                 removeCardsFromHand(cardsToPlay, player)
                 cardNoChosen = False
                 return cardsToPlay
+
+
+class SocketInterface:
+    # Prompts the command line to enter a card.
+    
+    '''
+    def promptCard(self, player, cardsOnTable):
+        cardNotChosen = True
+        tempHand = player.hand.copy()
+        possiblePlays = getPossiblePlays(player.hand,cardsOnTable)
+        playFromSocket = None
+        def receivePlay(possiblePlay):
+            print("*****Play received")
+            splitPlay = possiblePlay.split(",")
+            play = [eval(i) for i in splitPlay]
+            if play in possiblePlays or play[0] == 0:
+                playFromSocket = play
+                removeCardsFromHand(cardsToPlay, player)
+                cardNoChosen = False
+                return cardsToPlay
+        print("Before prompt card call")
+        player.socketio.on("submitPlay", receivePlay)
+        call("promptPlay", player.id)
+        print("After promptcard call")
+        '''
+        #while playFromSocket == None:
+            #player.socketio.on("submitPlay", receivePlay)
+        
+        # Check if the play is valid
+        # 
+        
 
 def encodePlays(plays, value, oneHot=-1):
     # Singles(14) go from 0-14
@@ -246,10 +279,19 @@ class AIModelInterface:
     def promptCard(self, player, cardsOnTable):
         #print(f"Prompting AI player({player.id}) for a card")
         
-        device = "cuda"
-        #device = "cpu"
+        #device = "cuda"
+        device = "cpu"
         #print(f"({player.id}): Cards On Table: {cardsOnTable}")
         possiblePlays = getPossiblePlays(player.hand, cardsOnTable)
+        #printObject  = {}
+        #printObject["playerID"] = player.id
+        #printObject["cardsOnTable"] = cardsOnTable
+        #printObject["playerHand"] = np.sort(player.hand).tolist()
+
+        #print(f"Player({player.id})")
+        #print(f"  The cards on Table {cardsOnTable}")
+        #print(f"  Possible Plays: {getPossiblePlays(player.hand, cardsOnTable)}")
+        #print(f"  Player's hand: {np.sort(player.hand)}")
         #print(f"({player.id}): possiblePlays: {possiblePlays}")
         #print(f"({player.id}): hand: {player.hand}")
         #print(f"Cards On Table: {cardsOnTable}")
@@ -257,7 +299,6 @@ class AIModelInterface:
         possiblePlaysEncoded = encodePlays(possiblePlays,1, oneHot=0)
         #print(f"Possible plays encoded {possiblePlaysEncoded}")
         if len(possiblePlays) == 0:
-            #print("retuning because no plays")
             return []
         #print(f"size of possiblePlays {possiblePlaysEncoded.shape}")
         cardsOnTableEncoded = encodePlays([cardsOnTable], 1, oneHot=0)
@@ -393,7 +434,12 @@ class AIModelInterface:
                     play = candidate
                     removeCardsFromHand(play,player)
                     break
-        
+        #print(f"  Play Selected: {play}")
+        #input()
+        #print("--------------------------")
+        #printObject["playSelected"] = play
+        #print(printObject)
+        #sys.stdout.flush()
         #print(f"({player.id})Candidate: {candidate} - {predInd}")
         #print(f"({player.id})possiblePlaysEncoded: {possiblePlaysEncoded} - {predInd}")
         #print(f'({player.id})Playing: {play}') 
