@@ -28,7 +28,7 @@ class Player:
         # Use the SocketInterface (for website)
         elif interfaceType == 3:
             self.id = id
-            self.cardInterface = CardInterfaces.SocketInterface()
+            #self.cardInterface = CardInterfaces.SocketInterface()
 
         else:
             print("That is not a card interface")

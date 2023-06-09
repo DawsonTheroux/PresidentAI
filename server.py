@@ -56,7 +56,11 @@ def get_resource(path):  # pragma: no cover
 @socketio.on('disconnect')
 def endConnection():
     requestSid = request.sid
-    del socketio.gamesInfo[requestSid]
+    #del socketio.gamesInfo[requestSid]
+    gameId = socketio.playerGameMap[requestSid]
+    playerName = socketio.gamesInfo[gameId]["players"][requestSid]["name"]
+    emit("playerDisconnect",playerName,  room=gameId)
+    del socketio.gamesInfo[gameId]
     # TODO: Delete game instance for the player who left.
 
 
@@ -113,9 +117,14 @@ def startGame():
     # Deal cards and initilize variables
     game_obj = Game(6, numHumanPlayers=socketio.gamesInfo[gameId]["numPlayers"], socketio=socketio)
 
+    playerNames = []
+    for playerId in socketio.gamesInfo[gameId]["players"]:
+        playerNames.append(socketio.gamesInfo[gameId]["players"][playerId])
+
     # Get the init object
-    initObject = game_obj.initSocketGame()
+    initObject, _ = game_obj.initSocketGame()
     socketio.gamesInfo[gameId]["gameObj"] = game_obj
+    initObject["names"] = playerNames
 
     print(f"initObject {initObject}")
     emit("gameStarted", initObject, room = gameId)
@@ -159,7 +168,7 @@ def receivePlay(playObj):
         return
 
     while not isSocketPlayer:
-        time.sleep(1.5)
+        time.sleep(0.75)
         stepObj = socketio.gamesInfo[gameId]["gameObj"].socketGameStep(None, False)
         emit("newPlay", stepObj, room=gameId)
 

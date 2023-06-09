@@ -8,6 +8,7 @@ cardsOnTable = []           // The cards on the table
 isTurn = false;             // Is it the clients turn
 oponentHands = {}           // Object with oponent information like numcards, their seats, etc.
 CARD_NAMES= {'1': 'spades_4', '2': 'spades_2', '3': 'spades_3', '4': 'spades_5', '5': 'spades_6', '6': 'spades_7', '7':'spades_8', '8': 'spades_9', '9': 'spades_10', '10': 'spades_jack', '11':'spades_queen', '12':'spades_king','13':'spades_ace', '14':'joker_black'};
+CARD_VALUES= {'1': '4', '2': '2', '3': '3', '4': '5', '5': '6', '6': '7', '7':'8', '8': '9', '9': '10', '10': 'J', '11':'Q', '12':'K','13':'A', '14':'Joker'};
 
 
 // Once the users name has been inputted, the socket is created
@@ -25,11 +26,17 @@ function joinGame(){
         socket.on("promptPlay", promptPlay);
         socket.on("newPlay", newPlayReceived);
         socket.on("gameFinished", gameFinished);
+        socket.on("playerDisconnect", handleDisconnect);
         socket.emit("joinGame", plaroom=playerName);
     }
 }
 
 
+function handleDisconnect(playerName){
+    window.location.reload();
+    confirm(playerName + " has disconnected...Match over");
+    
+}
 // Draw the waiting room HTML 
 function joinWaitingRoom(numPlayers){
     if(joinedWaitingRoom){
@@ -68,10 +75,6 @@ function startTheGame(){
 }
 
     
-
-//function sayHelloToServer(){
-//    socket.emit("helloServer")
-//}
 
 // Show loading screen while waiting for the initial game object from the server
 function gamePending(){
@@ -214,26 +217,49 @@ function enableCards(){
 
 // Initialize the display elements of the oponent hands
 // - This includes the cards themselves and the status'
-function initializeOponentHands(){
+function initializeOponentHands(names){
     let gameDiv = document.getElementById("presidentDiv")
     for(let i=2;i<7;i++){
         // Generate the status paragraph for the oponent
+        opName = document.createElement("p3");
+        opName.id = "opName" + i;
+        opName.classList.add("opStatus" + i);
+        opName.style.height="2.3vmin";
+        opName.style.fontSize="2.3vmin";
+        opName.style.margin=0;
+        opName.style.padding=0; 
+        opName.innerHTML = "AI " + i;
+
         opStatus = document.createElement("p3");
         opStatus.id = "opStatus" + i;
-        opStatus.style.height="1.8em";
+        opStatus.classList.add("opStatus" + i);
+        opStatus.style.height="2.3vmin";
+        opStatus.style.fontSize="2.3vmin";
         opStatus.style.margin=0;
         opStatus.style.padding=0;
 
-        // Generate the seat div for the oponent
-        divOpSeat = document.createElement("div"); 
-        divOpSeat.append(opStatus);
+        divOpSeat = document.createElement("div");
+        if(i == 2 || i == 6){
+            divOpSeat.append(opName);
+            divOpSeat.append(opStatus);
+        }
         divOpSeat.classList.add("seat" + i);
+
+        divOpSeatHand = document.createElement("div");
+        divOpSeatHand.classList.add("seat" + i + "_hand");
+        divOpSeat.append(divOpSeatHand);
+
+        if(i != 2 && i != 6){
+            divOpSeat.append(opName);
+            divOpSeat.append(opStatus);
+        }
+
 
         // Generate the hand div for the oponent
         divOpHand = document.createElement("div");
         divOpHand.id="opSeat" + i;
         divOpHand.classList.add("oponentHand");
-        divOpSeat.append(divOpHand);
+        divOpSeatHand.append(divOpHand);
         
         gameDiv.appendChild(divOpSeat);
     }
@@ -243,6 +269,15 @@ function initializeOponentHands(){
         }
         drawOponentCards(i);  // Addds the corrent number of card back images to each oponents hand div
     }
+
+    for(var i=0; i<names.length; i++){
+        if(names[i]["id"] == playerId){
+            continue;
+        }
+        console.log("Setting name for opName" + names[i]["id"]);
+        document.getElementById("opName" + getSeat(names[i]["id"])).innerHTML = names[i]["name"];
+    }
+
 }
 
 // Returns the seat number corresponding to certain oponent id.
@@ -298,6 +333,7 @@ function clearAllOponentStatus(){
 
 // Initialize all of the game HTML elements with the object given by the server.
 function gameStarted(handObject){
+    console.log(handObject)
     let gameDiv = document.getElementById("gameDiv");
     let presidentDiv = document.createElement("div");
     presidentDiv.classList.add("presidentGame");
@@ -313,21 +349,21 @@ function gameStarted(handObject){
     }
 
     //Initialize oponent hands with the info from the server.
+    // TODO: Change this so that the hand object is only the player. People can cheat right now.
     for(let i=1; i<7;i++){
         if(i == playerId){
             continue;
         }
         seat = getSeat(i);
-        console.log("seat:" + seat + " for oponent: " + i)
+        //console.log("seat:" + seat + " for oponent: " + i)
 
         oponentHands[i] = {};
         oponentHands[i]["numCards"] = handObject[i].length;
         oponentHands[i]["seat"] = seat;
-        
     }
 
     gameDiv.appendChild(presidentDiv);
-    initializeOponentHands();  // Add all the elements to the oponent hands. 
+    initializeOponentHands(handObject["names"]);  // Add all the elements to the oponent hands. 
 
     // Create the div that holds the Table cards.
     tableDiv = document.createElement("div");
@@ -465,7 +501,15 @@ function newPlayReceived(playObject){
         }else if(playObject["passed"]){
             opStatus.innerHTML = "Pass...";
         }else{
-            opStatus.innerHTML = "Played: " + playObject["play"];
+            let playString = "";
+
+            for(let i = 0; i<playObject["play"].length; i++){
+                playString += CARD_VALUES[playObject["play"][0]];
+                if(i<playObject["play"].length - 1){
+                    playString += ",";
+                }
+            }
+            opStatus.innerHTML = "Played: " + playString;
         }
     }
 
