@@ -120,7 +120,7 @@ def startGame():
     playerNames = []
     for playerId in socketio.gamesInfo[gameId]["players"]:
         playerNames.append(socketio.gamesInfo[gameId]["players"][playerId])
-
+    
     # Get the init object
     initObject, _ = game_obj.initSocketGame()
     socketio.gamesInfo[gameId]["gameObj"] = game_obj
@@ -199,7 +199,12 @@ def gameFinished():
         result["id"] = player.id
 
         if player.id <= socketio.gamesInfo[gameId]["numPlayers"]: # This will need to be changed for multiplayer
-            result["name"] = socketio.gamesInfo[gameId]["players"][requestSid]["name"]
+            #result["name"] = socketio.gamesInfo[gameId]["players"][requestSid]["name"]
+            # Find the player name through the socker object.
+            for j, infoPlayer in enumerate(socketio.gamesInfo[gameId]["players"].values()):
+                if player.id == infoPlayer["id"]:
+                    result["name"] = infoPlayer["name"]
+
         else:
             result["name"] = f"AI ({player.id})"
 

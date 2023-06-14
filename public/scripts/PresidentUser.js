@@ -228,7 +228,7 @@ function initializeOponentHands(names){
         opName.style.fontSize="2.3vmin";
         opName.style.margin=0;
         opName.style.padding=0; 
-        opName.innerHTML = "AI " + i;
+        opName.innerHTML = "AI " + "(" + i + ")";
 
         opStatus = document.createElement("p3");
         opStatus.id = "opStatus" + i;
@@ -250,8 +250,8 @@ function initializeOponentHands(names){
         divOpSeat.append(divOpSeatHand);
 
         if(i != 2 && i != 6){
-            divOpSeat.append(opName);
             divOpSeat.append(opStatus);
+            divOpSeat.append(opName);
         }
 
 
