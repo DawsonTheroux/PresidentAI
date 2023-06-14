@@ -57,7 +57,7 @@ function joinWaitingRoom(numPlayers){
         // Draw all of the waiting room HTML in the gameDiv
         playersString = document.createElement("li");
         playersString.id = "waitingLi";
-        playersString.innerHTML = "Waiting for other players... (" + numPlayers + "/6)";
+        playersString.innerHTML = "(" + numPlayers + "/6) currently in the lobby. Click start game to fill the remining players with AI.";
         gameDiv.appendChild(playersString)
         button = document.createElement("button");
         button.classList.add("button1");
