@@ -12,7 +12,7 @@ start_server () {
     nohup python3 server.py > log.txt 2>&1 &
 }
 
-if [[ $1 == "stop" ]]; then
+if [[ $1 == "stop" || $1 == "restart" ]]; then
     stop_server
     sleep 0.25
 fi
