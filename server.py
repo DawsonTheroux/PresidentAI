@@ -6,6 +6,7 @@ import time
 import eventlet
 from GameClass import Game
 import uuid
+from Leaderboard import Leaderboard
 
 
 app = Flask(__name__, template_folder="public")
@@ -212,7 +213,7 @@ def gameFinished():
         standings.append(result)
     
     emit("gameFinished", standings, room=gameId)
-    
+    socketio.db.add_game_to_db(standings)
     del socketio.gamesInfo[gameId]
     
 # I don't think this is necessary anymore.
@@ -230,6 +231,7 @@ def createApp():
     #socketio.run(app, port=8081, debug=True, certfile=ssl_cert, keyfile=ssl_cert_key) 
 
     # Uncomment for HTTP
+    socketio.db = Leaderboard()
     socketio.run(app, port=8081, debug=True) 
 
 
