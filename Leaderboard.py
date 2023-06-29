@@ -34,7 +34,6 @@ class Leaderboard:
             player_entry = (player_name, 0, 0, 0, 0, 0, 0)
             cur.execute(f"INSERT INTO Leaderboard VALUES {player_entry}")
             self.con.commit()
-            print("Didn't find entry creating new entry")
         
         return player_entry
 
@@ -45,10 +44,8 @@ class Leaderboard:
         column_to_update = f"num_{self.position_info[position]['header']}"
         new_value= player_entry[self.position_info[position]["index"]] + 1
         command = f"UPDATE Leaderboard SET {column_to_update}={new_value} WHERE name='{player_name}'"
-        print(f"The command: {command}")
         cur.execute(command)
         self.con.commit()
-        print("Updated player")
     
     def add_history(self, standings):
         # Standings is an array of dicitonaries.
@@ -87,15 +84,6 @@ class Leaderboard:
         print("\n\nPrinting Game History table")
         for row in cur.execute("SELECT * FROM Game_History"):
             print(row)
-
-
-
-        
-
-
-
-
-
 
 if __name__ == "__main__":
     # Running this file will initialize the databases
